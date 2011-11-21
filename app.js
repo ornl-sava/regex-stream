@@ -173,14 +173,14 @@ var loadData = function () {
         })
         .on('data',function(data,index){
             db.save(data, function (err, res) {
-                if (err) { console.error("Error on update:\n", err); }
+                if (err) { console.error("Error on db update\n", err); }
             });
         })
         .on('end',function(count){
             console.log("\nCOMPLETED\nNumber of lines processed: "+count);
         })
-        .on('error',function(error){
-            console.error("\nError\n"+error);
+        .on('error',function(err){
+            console.error("\Error parsing csv file\n"+err);
         });
 };
 
