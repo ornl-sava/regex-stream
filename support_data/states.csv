@@ -1,0 +1,61 @@
+Code,Alpha,Name
+2, AK, Alaska
+1, AL, Alabama
+5, AR, Arkansas
+60, AS, American Samoa
+4, AZ, Arizona
+6, CA, California
+8, CO, Colorado
+9, CT, Connecticut
+11, DC, District of Columbia
+10, DE, Delaware
+12, FL, Florida
+64, FM, Federated States of Micronesia
+13, GA, Georgia
+66, GU, Guam
+15, HI, Hawaii
+19, IA, Iowa
+16, ID, Idaho
+17, IL, Illinois
+18, IN, Indiana
+20, KS, Kansas
+21, KY, Kentucky
+22, LA, Louisiana
+25, MA, Massachusetts
+24, MD, Maryland
+23, ME, Maine
+68, MH, Marshall Islands
+26, MI, Michigan
+27, MN, Minnesota
+29, MO, Missouri
+69, MP, Northern Mariana Islands
+28, MS, Mississippi
+30, MT, Montana
+37, NC, North Carolina
+38, ND, North Dakota
+31, NE, Nebraska
+33, NH, New Hampshire
+34, NJ, New Jersey
+35, NM, New Mexico
+32, NV, Nevada
+36, NY, New York
+39, OH, Ohio
+40, OK, Oklahoma
+41, OR, Oregon
+42, PA, Pennsylvania
+72, PR, Puerto Rico
+70, PW, Republic of Palau
+44, RI, Rhode Island
+45, SC, South Carolina
+46, SD, South Dakota
+47, TN, Tennessee
+48, TX, Texas
+74, UM, U.S. Minor Outlying Islands
+49, UT, Utah
+51, VA, Virginia
+78, VI, Virgin Islands
+50, VT, Vermont
+53, WA, Washington
+55, WI, Wisconsin
+54, WV, West Virginia
+56, WY, Wyoming
