@@ -55,11 +55,19 @@ var transformRecord = function (d) {
         }
 
         // transform percentages from x.x% to 0.0xx
-        if ( key.match(/\%/) ) { 
-            newValue = Math.round( (parseFloat(val) / 100) * 1000 ) / 1000; 
-            console.log(val + " --> " + newValue);
-            data[key] = newValue;
+        if ( key.match(/percent/i) || val.match(/[\d\.]+\%/) ) { 
+            var noPercent = _s.toNumber(parseFloat(val) / 100, 4); 
+            console.log(val + " -> " + noPercent);
+            data[key] = noPercent;
         }
+        // remove commas from numbers
+        else if ( val.match(/\$*[\d,]+/) ) { 
+            var newVal = _s.toNumber(val.replace(/,/g, '').replace(/^\$/, ''), 2);
+            console.log(val + " -> " + newVal);
+            data[key] = newVal;
+        }
+        
+        
         
     });
     return d;
