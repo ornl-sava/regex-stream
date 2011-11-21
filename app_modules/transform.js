@@ -36,8 +36,9 @@ var stateFips = JSON.parse( fs.readFileSync(stateFipsFilePath) );
 
 // Perform transformations on each record in the raw data
 var transformRecord = function (d) {
-    var data = d;
-    _.each(d, function(val, key, list) {
+    _.each(d, function(val, key, data) {
+
+        // Add locale metadata
         if ( key === 'STATE' ) {
             var s = _.find(stateFips, function(obj) { return obj['Alpha'] == val; }); 
             data['Locale'] = _.isUndefined(s) ? '' : s['Name'];
@@ -52,9 +53,16 @@ var transformRecord = function (d) {
             data['Locale Level'] = "HospitalReferralRegion";
             data['Locale HRR Code'] = '';
         }
+
+        // transform percentages from x.x% to 0.0xx
+        if ( key.match(/\%/) ) { 
+            newValue = Math.round( (parseFloat(val) / 100) * 1000 ) / 1000; 
+            console.log(val + " --> " + newValue);
+            data[key] = newValue;
+        }
         
     });
-    return data;
+    return d;
 };
 
 // export for use in other node.js files

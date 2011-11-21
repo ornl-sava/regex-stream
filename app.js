@@ -45,6 +45,9 @@ var _ = require('underscore');
 var transformData = require(APP_MODULE_DIR + '/' + 'transform.js');
 
 
+// the parsed data to upload
+var jsonData = [];
+
 // parse command line options
 var dbOptions = DEFAULT_DB_OPTS; // not configurable
 
@@ -172,12 +175,15 @@ var loadData = function () {
             return transformData.transformRecord(data);
         })
         .on('data',function(data,index){
-            db.save(data, function (err, res) {
-                if (err) { console.error("Error on db update\n", err); }
-            });
+            jsonData.push(data);
         })
         .on('end',function(count){
-            console.log("\nCOMPLETED\nNumber of lines processed: "+count);
+            db.save(jsonData, function (err, res) {
+                if ( err || res.ok ==- false ) { 
+                    console.error("Error on db update\n", err);
+                }
+                console.log("\nCOMPLETED\nNumber of lines processed: "+count);
+            });
         })
         .on('error',function(err){
             console.error("\Error parsing csv file\n"+err);
