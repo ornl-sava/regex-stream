@@ -8,7 +8,7 @@ hiw-import is a framework for importing csv data into [CouchDB](http://couchdb.a
 3. Ensure you have a running instance of [CouchDB](http://couchdb.apache.org/) that you can connect to from the machine running the import script.
 4. Run the script. You must set the database name, the other parameters are optional, use --help to see all.
 
-```bash
+```
  node import.js --name <database name>
 ```
 
