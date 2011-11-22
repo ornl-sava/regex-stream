@@ -9,7 +9,7 @@ var APP_VERSION = '0.0.1';
 var APP_MODULE_DIR = './app_modules';
 var DEFAULT_DATA_DIR = './data';
 var DEFAULT_CSV_OPTS = {trim: true, columns: true};
-var DEFAULT_DB_NAME = 'iom_test';
+var DEFAULT_DB_NAME = '';
 var DEFAULT_DB_HOST = 'http://127.0.0.1';
 var DEFAULT_DB_PORT = 5984;
 var DEFAULT_DB_OPTS = { cache: false, raw: false };
@@ -52,6 +52,10 @@ var jsonData = [];
 // parse command line options
 var dbOptions = DEFAULT_DB_OPTS; // not configurable
 
+// debugging info to console
+var debug = false;
+
+
 var options = [
   { short       : 'v'
   , long        : 'version'
@@ -59,24 +63,23 @@ var options = [
   , callback    : function () { console.log(APP_VERSION); process.exit(1); }
   },
   { short       : 'd'
-  , long        : 'data-dir'
-  , description : 'Set data directory to read from'
+  , long        : 'debug'
+  , description : 'Show debugging info'
+  , callback    : function () { debug = true; }
+  },
+  { short       : 'i'
+  , long        : 'input-dir'
+  , description : 'Set input directory to import csv data from'
   , callback    : function (value) {
         if ( path.existsSync(value) ) {
-            console.log('Using ' + value + ' for data directory.');
+            console.log('Using ' + value + ' for input directory.');
         }
         else {
-            console.error('Data directory ' + value + ' does not exist.');
+            console.error('Input directory ' + value + ' does not exist.');
             process.exit(1);
         }
     }
   , value       : true
-  },
-  { short       : 'n'
-  , long        : 'name'
-  , description : 'The name of couchdb database instance'
-  , value       : true
-  , callback    : function (value) { console.log('Using ' + value + ' for CouchDB database name.'); }
   },
   { short       : 'h'
   , long        : 'host'
@@ -103,6 +106,13 @@ var options = [
         console.log('Using ' + value + ' for CouchDB connection port.');
     }
   },
+  { short       : 'n'
+  , long        : 'name'
+  , description : 'The name of couchdb database instance'
+  , value       : true
+  , required    : true
+  , callback    : function (value) { console.log('Using ' + value + ' for CouchDB database name.'); }
+  }
 ];
 
 opts.parse(options, true);
@@ -116,6 +126,7 @@ dbPort = opts.get('port') || DEFAULT_DB_PORT;
 // Set up connection to the database and return a database instance
 var db;
 try {
+    if ( debug ) { console.log('Connecting to database...'); }
     db = new(cradle.Connection)(dbHost,dbPort,dbOptions).database(dbName);
 }
 catch (err) {
@@ -132,7 +143,7 @@ db.exists(function (err, exists) {
         process.exit(1);
     }
     if ( ! exists ) {
-        console.log('Creating database, ' + dbName + ', on ' + dbHost);
+        if ( debug ) { console.log('Creating database, ' + dbName + ', on ' + dbHost); }
         db.create(function (err, res) {
             if ( err || res.ok === false ) {
                 console.error('Error creating database ' + dbName + "\n" + err);
@@ -142,8 +153,10 @@ db.exists(function (err, exists) {
             listFiles();
         });
     }
-    loadViews();
-    listFiles();
+    else {
+        loadViews();
+        listFiles();
+    }
 });
 
 
@@ -152,7 +165,7 @@ var listFiles = function() {
     fs.readdir(dataDir, function(err, files) {
         _.each(files, function(file) {
             var filePath = dataDir + "/" + file;
-            console.log("Reading file: " + filePath);
+            if ( debug ) { console.log('Reading file: ' + filePath); }
             loadData(filePath);
         });
     });
@@ -186,12 +199,13 @@ var loadData = function (file) {
     csv()
         .fromPath(file, DEFAULT_CSV_OPTS)
         .transform(function(data){
-            return transformData.transformRecord(data);
+            return transformData.transformRecord(data, debug);
         })
         .on('data',function(data,index){
             jsonData.push(data);
         })
         .on('end',function(count){
+            if ( debug ) { console.log('Writing to database...'); }
             db.save(jsonData, function (err, res) {
                 if ( err || res.ok ==- false ) {
                     console.error("Error on db update\n", err);
