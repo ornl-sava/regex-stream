@@ -19,6 +19,7 @@ var DEFAULT_DB_OPTS = { cache: false, raw: false };
 // Import node.js core modules
 //  http://nodejs.org/docs/latest/api/
 var util = require('util');
+var fs = require('fs');
 var path = require('path');
 
 
@@ -39,7 +40,7 @@ var cradle = require('cradle');
 // Import underscore module for collection manipulation and utils
 //  http://documentcloud.github.com/underscore/
 var _ = require('underscore');
-    
+
 
 // Import application modules
 var transformData = require(APP_MODULE_DIR + '/' + 'transform.js');
@@ -60,14 +61,14 @@ var options = [
   { short       : 'd'
   , long        : 'data-dir'
   , description : 'Set data directory to read from'
-  , callback    : function (value) { 
-        if ( path.existsSync(value) ) {        
+  , callback    : function (value) {
+        if ( path.existsSync(value) ) {
             console.log('Using ' + value + ' for data directory.');
         }
         else {
             console.error('Data directory ' + value + ' does not exist.');
             process.exit(1);
-        }    
+        }
     }
   , value       : true
   },
@@ -87,14 +88,14 @@ var options = [
             console.error('Host ' + value + ' is invalid. Must be in the format "http://hostname".');
             process.exit(1);
         }
-        console.log('Using ' + value + ' for CouchDB database host.'); 
+        console.log('Using ' + value + ' for CouchDB database host.');
     }
   },
   { short       : 'p'
   , long        : 'port'
   , description : 'The port of couchdb instance'
   , value       : true
-  , callback    : function (value) { 
+  , callback    : function (value) {
         if( isNaN( parseInt(value) ) ) {
             console.error('Port ' + value + ' is invalid.');
             process.exit(1);
@@ -112,50 +113,55 @@ dbHost = opts.get('host') || DEFAULT_DB_HOST;
 dbPort = opts.get('port') || DEFAULT_DB_PORT;
 
 
-// data to read from
-var fileName = 'iom-state.csv';
-
-// try to open a database connection to couchdb
+// Set up connection to the database and return a database instance
 var db;
 try {
     db = new(cradle.Connection)(dbHost,dbPort,dbOptions).database(dbName);
 }
 catch (err) {
     console.error('Unable to connect to a running CouchDB instance at '+ dbHost + ':' + dbPort + '/' + dbName);
-    console.error('Check that the server is running and try again');
-    console.error(err);
+    console.error('Check that the server is running and try again' + "\n" + err);
     process.exit(1);
 }
 
 // create db if it does not exist and load views and data
 db.exists(function (err, exists) {
-    if (err) { 
+    if (err) {
         console.error('Unable to check if CouchDB instance exists '+ dbHost + ':' + dbPort + '/' + dbName);
-        console.error('Check that the server is running and try again');
-        console.error(err);
+        console.error('Check that the server is running and try again' + "\n" + err);
         process.exit(1);
     }
     if ( ! exists ) {
         console.log('Creating database, ' + dbName + ', on ' + dbHost);
         db.create(function (err, res) {
-            if ( err || res.ok === false ) { 
-                console.error('Error creating database ' + dbName); 
-                console.error(err);
+            if ( err || res.ok === false ) {
+                console.error('Error creating database ' + dbName + "\n" + err);
                 process.exit(1);
             }
             loadViews();
-            loadData();
+            listFiles();
         });
     }
-    else {
-        loadViews();
-        loadData();
-    }
+    loadViews();
+    listFiles();
 });
 
 
+// read csv files from the data directory and process each one
+var listFiles = function() {
+    fs.readdir(dataDir, function(err, files) {
+        _.each(files, function(file) {
+            var filePath = dataDir + "/" + file;
+            console.log("Reading file: " + filePath);
+            loadData(filePath);
+        });
+    });
+};
+
+
 // Set up couchdb views
-// Query Tennessee: 
+// This is only a test, should be in separate file
+// Query Tennessee:
 //      http://127.0.0.1:5984/iom_test/_design/state/_view/all/?key="TN"
 var loadViews = function () {
     db.save('_design/state', {
@@ -165,12 +171,20 @@ var loadViews = function () {
             }
         }
     });
+    db.save('_design/hhr', {
+        all: {
+            map: function (doc) {
+                if (doc.HHR) emit(doc.HHR, doc);
+            }
+        }
+    });
 };
 
+
 // Process input csv data
-var loadData = function () {
+var loadData = function (file) {
     csv()
-        .fromPath(dataDir+'/'+fileName, DEFAULT_CSV_OPTS)
+        .fromPath(file, DEFAULT_CSV_OPTS)
         .transform(function(data){
             return transformData.transformRecord(data);
         })
@@ -179,7 +193,7 @@ var loadData = function () {
         })
         .on('end',function(count){
             db.save(jsonData, function (err, res) {
-                if ( err || res.ok ==- false ) { 
+                if ( err || res.ok ==- false ) {
                     console.error("Error on db update\n", err);
                 }
                 console.log("\nCOMPLETED\nNumber of lines processed: "+count);

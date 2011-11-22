@@ -57,13 +57,13 @@ var transformRecord = function (d) {
         // transform percentages from x.x% to 0.0xx
         if ( key.match(/percent/i) || val.match(/[\d\.]+\%/) ) { 
             var noPercent = _s.toNumber(parseFloat(val) / 100, 4); 
-            console.log(val + " -> " + noPercent);
+            console.log(key + " : " + val + " -> " + noPercent);
             data[key] = noPercent;
         }
         // remove commas from numbers
         else if ( val.match(/\$*[\d,]+/) ) { 
             var newVal = _s.toNumber(val.replace(/,/g, '').replace(/^\$/, ''), 2);
-            console.log(val + " -> " + newVal);
+            console.log(key + " : " + val + " -> " + newVal);
             data[key] = newVal;
         }
         
