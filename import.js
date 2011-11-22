@@ -64,12 +64,12 @@ var options = [
   },
   { short       : 'd'
   , long        : 'debug'
-  , description : 'Show debugging info'
+  , description : 'Show debugging info  (default:  ' + (debug ? 'true' : 'false') + ')'
   , callback    : function () { debug = true; }
   },
   { short       : 'i'
   , long        : 'input-dir'
-  , description : 'Set input directory to import csv data from'
+  , description : 'Set input directory to import csv data from  (default:  ' + DEFAULT_DATA_DIR + ')'
   , callback    : function (value) {
         if ( path.existsSync(value) ) {
             console.log('Using ' + value + ' for input directory.');
@@ -83,7 +83,7 @@ var options = [
   },
   { short       : 'h'
   , long        : 'host'
-  , description : 'The hostname of couchdb instance'
+  , description : 'The hostname of couchdb instance  (default:  ' + DEFAULT_DB_HOST + ')'
   , value       : true
   , callback    : function (value) {
         console.log(value);
@@ -96,7 +96,7 @@ var options = [
   },
   { short       : 'p'
   , long        : 'port'
-  , description : 'The port of couchdb instance'
+  , description : 'The port of couchdb instance  (default:  ' + DEFAULT_DB_PORT + ')'
   , value       : true
   , callback    : function (value) {
         if( isNaN( parseInt(value) ) ) {
