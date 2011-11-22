@@ -5,14 +5,12 @@ hiw-import is a framework for importing csv data into [CouchDB](http://couchdb.a
 
 1. Download and install [node.js](http://nodejs.org/#download), v0.6.x
 2. Put data files in csv format in the **data** directory.
-3. Ensure you have a running instance of CouchDB that you can connect to from the machine running the import script.
+3. Ensure you have a running instance of [CouchDB](http://couchdb.apache.org/) that you can connect to from the machine running the import script.
+4. Run the script. You must set the database name, the other parameters are optional, use --help to see all.
 
-    node import.js -n <couchdb database>
-
-For more options, such as changing the CouchDB database location.
-
-    node import.js --help
-
+```bash
+ node import.js --name <database name>
+```
 
 # Open Issues
 
