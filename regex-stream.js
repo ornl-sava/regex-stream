@@ -12,19 +12,32 @@ module.exports = RegexStream
 
 var Stream = require('stream').Stream
   , inherits = require('inherits')
+  , moment = require('moment')
 
 
-function RegexStream (opts) {
+function RegexStream (regexConfig) {
   this.writable = true
   this.readable = true
 
   this._paused = this._ended = this._destroyed = false
 
-  // set up options for parsing
-  if ( typeof opts !== 'undefined' ) {
-    this._regex = (typeof opts.regex !== 'undefined' ? opts.regex : '')
-
-    //set up other options here
+  // set up options for parsing using a regular expression
+  if ( typeof regexConfig !== 'undefined' ) {
+    // if a regular expression config is defined, all of the pieces need to be defined
+    if ( typeof regexConfig.regex === 'undefined' ) {
+      this._hasRegex = false
+      this.emit('error', new Error('RegexStream: regex not correctly set up'))
+    }
+    else {
+      this._hasRegex = true
+      this._regex = new RegExp(regexConfig.regex)
+      this._timeRegex = regexConfig.timestamp
+      this._labelsRegex = regexConfig.labels
+      this._delimiter = regexConfig.delimiter
+    }
+  }
+  else {
+    this._hasRegex = false  // there is no regular expression
   }
 
   Stream.call(this)
@@ -44,12 +57,22 @@ RegexStream.prototype.write = function (str) {
   
   if ( this._paused ) return false
   
-  
-  
-  // do something to the input
-  var transformedStr = str
-  
-  this._emitData(transformedStr)
+  var self = this
+  if ( this._hasRegex ) {
+    // parse the input string
+    this._parse(str, function(err, json) {
+      if ( err ) {
+        self.emit('error', new Error('RegexStream: parsing error - ' + err))
+      }
+      else {
+        self.emit('data', JSON.stringify(json))
+      }
+    })
+  }
+  else {
+    // just emit the original data
+    self.emit('data', str)
+  }
   
   return true
 }
@@ -100,6 +123,41 @@ RegexStream.prototype.destroy = function () {
 RegexStream.prototype.flush = function () {
   // emit event
 }
+
+
+//   callback(error, json)
+RegexStream.prototype._parse = function (str, callback) {
+  var result = {}
+  var error = ''
+  try{
+    var parsed = this._regex.exec(str)
+    if (parsed) {
+      for (var i = 1; i < parsed.length; i++) {
+        if (this._timeRegex !== '' && this._labelsRegex[i - 1] === 'timestamp')
+          result[this._labelsRegex[i - 1]] = this._parseTime(parsed[i], this._timeRegex)
+        else 
+          result[this._labelsRegex[i - 1]] = parsed[i]
+      }
+    }
+    else {
+      error = 'Error parsing string\n  String: ' + str + '\n  Parser: ' + this._regex
+    }
+  }
+  catch (err){
+    error = err;
+  }
+  callback(error, result)
+  
+}
+
+RegexStream.prototype._parseTime = function (string, rex) {
+  var timestamp = moment(string+"+0000", rex+"ZZ")
+  // if there is no year in the timestamp regex set it to this year
+  if (! rex.match(/YY/))
+    timestamp.year(moment().year())
+  return timestamp.valueOf()
+}
+
 
 RegexStream.prototype._emitData = function (str) {
   this.emit('data', str)
