@@ -1,7 +1,7 @@
 /*global module:true, require:true, console:true, process:true */
 
 /*
-  This module will transform a string into JSON
+  This module will transform a string into JSON string
   It will input a stream, parse it according to a 
   regular expression and output to a stream
 */
@@ -11,7 +11,7 @@
 module.exports = RegexStream
 
 var Stream = require('stream').Stream
-  , inherits = require('inherits')
+  , util = require('util')
   , moment = require('moment')
 
 
@@ -49,7 +49,7 @@ function RegexStream (regexConfig) {
   return this
 }
 
-inherits(RegexStream, Stream)
+util.inherits(RegexStream, Stream)
 
 
 
@@ -60,7 +60,10 @@ RegexStream.prototype.write = function (str) {
   if ( ! this.writable ) throw new Error('RegexStream: not a writable stream')
   
   if ( this._paused ) return false
+  
   var self = this
+  var buffer = ''
+  
   if ( this._hasRegex ) {
     // parse the input string
     this._parseLine(str, function(err, json) {
