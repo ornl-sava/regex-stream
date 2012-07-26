@@ -1,7 +1,7 @@
 var spec = require('stream-spec')
   , RegexStream = require('../regex-stream.js')
 
-describe('StreamSpec Tests', function() {
+describe('Stream Specification Tests', function() {
 
   describe('# writable stream-spec', function(){
     it('should pass stream-spec validation for writable', function(){
@@ -34,7 +34,7 @@ var writableStreamSpec = function (stream) {
 }
 
 var readableStreamSpec = function (stream) {
-  var s = spec(stream).readable().pausable()
+  var s = spec(stream).readable().pausable({strict: true})
   
   stream.end()
   
@@ -42,7 +42,7 @@ var readableStreamSpec = function (stream) {
 }
 
 var throughStreamSpec = function (stream) {
-  var s = spec(stream).through()
+  var s = spec(stream).through({strict: true})
 
   stream.write('write test')
   stream.end('end test')
