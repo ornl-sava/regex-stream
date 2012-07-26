@@ -26,7 +26,7 @@ var simpleRegex = function (done) {
   var expected = {"A label":"23","B label":"45","C label":"67"}
 
   var regexStream = new RegexStream(parser)
-  regexStream._parse(data, function(err, out) {
+  regexStream._parseLine(data, function(err, out) {
     if ( err )
       throw err
     out.should.eql(expected)

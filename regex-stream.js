@@ -30,10 +30,14 @@ function RegexStream (regexConfig) {
     }
     else {
       this._hasRegex = true
+      
+      // required
       this._regex = new RegExp(regexConfig.regex)
-      this._timeRegex = regexConfig.timestamp
       this._labelsRegex = regexConfig.labels
-      this._delimiter = regexConfig.delimiter
+      
+      // optional
+      this._timeRegex = regexConfig.timestamp || ''
+      this._delimiter = regexConfig.delimiter || '\n'  // default to split on newline
     }
   }
   else {
@@ -56,11 +60,10 @@ RegexStream.prototype.write = function (str) {
   if ( ! this.writable ) throw new Error('RegexStream: not a writable stream')
   
   if ( this._paused ) return false
-  
   var self = this
   if ( this._hasRegex ) {
     // parse the input string
-    this._parse(str, function(err, json) {
+    this._parseLine(str, function(err, json) {
       if ( err ) {
         self.emit('error', new Error('RegexStream: parsing error - ' + err))
       }
@@ -126,10 +129,11 @@ RegexStream.prototype.flush = function () {
 
 
 //   callback(error, json)
-RegexStream.prototype._parse = function (str, callback) {
+RegexStream.prototype._parseLine = function (str, callback) {
   var result = {}
-  var error = ''
-  try{
+    , error = ''
+  
+  try {
     var parsed = this._regex.exec(str)
     if (parsed) {
       for (var i = 1; i < parsed.length; i++) {
@@ -146,6 +150,7 @@ RegexStream.prototype._parse = function (str, callback) {
   catch (err){
     error = err;
   }
+  
   callback(error, result)
   
 }
