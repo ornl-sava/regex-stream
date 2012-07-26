@@ -70,6 +70,7 @@ RegexStream.prototype.write = function (str) {
   var self = this
 
   // parse each line asynchronously and emit the data (or error)
+  // TODO - empty funciton here b/c wanted a callback for testing, best if tests listen for events and get rid of the callback
   if ( this._hasRegex ) {
     this._parseString(str, function() {}) 
   }
