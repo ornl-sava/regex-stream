@@ -21,6 +21,8 @@ function RegexStream (regexConfig) {
 
   this._paused = this._ended = this._destroyed = false
 
+  this._buffer = ''
+  
   // set up options for parsing using a regular expression
   if ( typeof regexConfig !== 'undefined' ) {
     // if a regular expression config is defined, all of the pieces need to be defined
@@ -37,7 +39,7 @@ function RegexStream (regexConfig) {
       
       // optional
       this._timeRegex = regexConfig.timestamp || ''
-      this._delimiter = regexConfig.delimiter || '\n'  // default to split on newline
+      this._delimiter = new RegExp(regexConfig.delimiter || '\n') // default to split on newline
     }
   }
   else {
@@ -55,32 +57,28 @@ util.inherits(RegexStream, Stream)
 
 // assumes UTF-8
 RegexStream.prototype.write = function (str) {
-  if ( this._ended ) throw new Error('RegexStream: write after end')
+  // cannot write to a stream after it has ended
+  if ( this._ended ) 
+    throw new Error('RegexStream: write after end')
 
-  if ( ! this.writable ) throw new Error('RegexStream: not a writable stream')
+  if ( ! this.writable ) 
+    throw new Error('RegexStream: not a writable stream')
   
-  if ( this._paused ) return false
+  if ( this._paused ) 
+    return false
   
   var self = this
-  var buffer = ''
-  
+
+  // parse each line asynchronously and emit the data (or error)
   if ( this._hasRegex ) {
-    // parse the input string
-    this._parseLine(str, function(err, json) {
-      if ( err ) {
-        self.emit('error', new Error('RegexStream: parsing error - ' + err))
-      }
-      else {
-        self.emit('data', JSON.stringify(json))
-      }
-    })
+    this._parseString(str, function() {}) 
   }
   else {
     // just emit the original data
     self.emit('data', str)
   }
   
-  return true
+  return true  
 }
 
 RegexStream.prototype.end = function (str) {
@@ -131,33 +129,57 @@ RegexStream.prototype.flush = function () {
 }
 
 
-//   callback(error, json)
-RegexStream.prototype._parseLine = function (str, callback) {
-  var result = {}
+// callback is just used for testing
+RegexStream.prototype._parseString = function (data, callback) {
+  var lines = []
     , error = ''
+    , result = {}
+    , results = []
   
-  try {
-    var parsed = this._regex.exec(str)
-    if (parsed) {
-      for (var i = 1; i < parsed.length; i++) {
-        if (this._timeRegex !== '' && this._labelsRegex[i - 1] === 'timestamp')
-          result[this._labelsRegex[i - 1]] = this._parseTime(parsed[i], this._timeRegex)
-        else 
-          result[this._labelsRegex[i - 1]] = parsed[i]
+  // this._buffer has any remainder from the last stream, prepend to the first of lines
+  if ( this._buffer !== '') {
+    data = this._buffer + data
+    this._buffer = '';
+  }
+
+  // split using the delimiter
+  lines = data.split(this._delimiter);
+
+  // loop through each all of the lines and parse
+  for ( var i = 0 ; i < lines.length ; i++ ) {
+    try {
+      result = {}
+      var parsed = this._regex.exec(lines[i])
+      if (parsed) {
+        for (var j = 1; j < parsed.length; j++) {
+          if (this._timeRegex !== '' && this._labelsRegex[j - 1] === 'timestamp')
+            result[this._labelsRegex[j - 1]] = this._parseTime(parsed[j], this._timeRegex)
+          else 
+            result[this._labelsRegex[j - 1]] = parsed[j]
+        }
+      }
+      else {
+        error =  new Error('Error parsing string\n  String: ' + data + '\n  Parser: ' + this._regex)
+        this.emit('error', error)
       }
     }
-    else {
-      error = 'Error parsing string\n  String: ' + str + '\n  Parser: ' + this._regex
+    catch (err){
+      error = new Error('RegexStream: parsing error - ' + err)
+      this.emit('error', error)
     }
-  }
-  catch (err){
-    error = err;
+    this.emit('data', JSON.stringify(result))
+    results.push(result)
   }
   
-  callback(error, result)
-  
+  // if not at end of file, save this line into this._buffer for next time
+  if ( lines.length > 1 && this.readable )
+    this._buffer = lines.pop()
+
+  callback(error, results)
 }
 
+// Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
+// @return {Number} timestamp The number of milliseconds since the Unix Epoch
 RegexStream.prototype._parseTime = function (string, rex) {
   var timestamp = moment(string+"+0000", rex+"ZZ")
   // if there is no year in the timestamp regex set it to this year

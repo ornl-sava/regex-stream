@@ -23,10 +23,14 @@ var simpleRegex = function (done) {
     , "delimiter": "\r\n|\n"
   }
 
-  var expected = {"A label":"23","B label":"45","C label":"67"}
+  var expected = [
+    {"A label":"23","B label":"45","C label":"67"}
+  , {"A label":"89","B label":"12","C label":"34"}
+  , {"A label":"56","B label":"78","C label":"90"}
+  ]
 
   var regexStream = new RegexStream(parser)
-  regexStream._parseLine(data, function(err, out) {
+  regexStream._parseString(data, function(err, out) {
     if ( err )
       throw err
     out.should.eql(expected)
