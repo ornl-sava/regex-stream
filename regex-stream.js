@@ -121,7 +121,7 @@ RegexStream.prototype.destroy = function () {
 }
 
 RegexStream.prototype.flush = function () {
-  // emit event
+  this.emit('flush')
 }
 
 
@@ -156,9 +156,4 @@ RegexStream.prototype._parseTime = function (string, rex) {
   if (! rex.match(/YY/))
     timestamp.year(moment().year())
   return timestamp.valueOf()
-}
-
-
-RegexStream.prototype._emitData = function (str) {
-  this.emit('data', str)
 }
