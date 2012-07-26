@@ -21,7 +21,7 @@
     }
   , "private": true
   , "scripts" : {
-      "test": "mocha -R spec test/regex-stream-test.js"
+      "test": "mocha -R spec test/*-test.js"
     }
   , "main": "./regex-stream.js"
   , "dependencies": {
