@@ -1,5 +1,6 @@
 var RegexStream = require('../regex-stream.js')
   , should = require('should')
+  , moment = require('moment')
 
 describe('RegEx Parse Tests', function() {
 
@@ -47,19 +48,23 @@ var simpleRegex = function (done) {
 
 var timestampRegex = function (done) {
   // define the test data
-  var data = '2012/07/25 10:00:00: First line\n2012/07/25 14:14:14: Second line\n2012/07/26 07:00:00: Third line\n2012/07/26 07:07:07: Fourth line'
+  var data = '2012/07/25 10:00:00+0000: First line\n2012/07/25 14:14:14+0000: Second line\n2012/07/26 07:00:00+0000: Third line\n2012/07/26 07:07:07+0000: Fourth line'
 
   // define the regular expression
+  var timeFormatter = "YYYY/MM/DD HH:MM:SS+Z"
   var parser = {
       "regex": "^([\\S\\s]+): ([\\S\\s]+)"
     , "labels": ["timestamp", "line"]
+    , "fields": {
+        "timestamp": {"regex": timeFormatter, "type": "moment"}
+      }
   }
 
   var expected = [
-    { timestamp: '2012/07/25 10:00:00', line: 'First line' }
-  , { timestamp: '2012/07/25 14:14:14', line: 'Second line' }
-  , { timestamp: '2012/07/26 07:00:00', line: 'Third line' }
-  , { timestamp: '2012/07/26 07:07:07', line: 'Fourth line' }
+    { timestamp: moment('2012/07/25 10:00:00+0000', timeFormatter).valueOf(), line: 'First line' }
+  , { timestamp: moment('2012/07/25 14:14:14+0000', timeFormatter).valueOf(), line: 'Second line' }
+  , { timestamp: moment('2012/07/26 07:00:00+0000', timeFormatter).valueOf(), line: 'Third line' }
+  , { timestamp: moment('2012/07/26 07:07:07+0000', timeFormatter).valueOf(), line: 'Fourth line' }
   ]
 
   var regexStream = new RegexStream(parser)
