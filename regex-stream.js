@@ -35,11 +35,12 @@ function RegexStream (regexConfig) {
       
       // required
       this._regex = new RegExp(regexConfig.regex)
-      this._labelsRegex = regexConfig.labels
+      this._labels = regexConfig.labels
       
       // optional
-      this._timeRegex = regexConfig.timestamp || ''
       this._delimiter = new RegExp(regexConfig.delimiter || '\n') // default to split on newline
+      this._fieldsRegex = regexConfig.fields || {}
+
     }
   }
   else {
@@ -134,29 +135,39 @@ RegexStream.prototype.flush = function () {
 RegexStream.prototype._parseString = function (data, callback) {
   var lines = []
     , error = ''
-    , result = {}
     , results = []
   
   // this._buffer has any remainder from the last stream, prepend to the first of lines
   if ( this._buffer !== '') {
     data = this._buffer + data
-    this._buffer = '';
+    this._buffer = ''
   }
 
   // split using the delimiter
-  lines = data.split(this._delimiter);
+  lines = data.split(this._delimiter)
 
   // loop through each all of the lines and parse
-  for ( var i = 0 ; i < lines.length ; i++ ) {
+  var i
+  for ( i = 0 ; i < lines.length ; i++ ) {
     try {
-      result = {}
+      var result = {}
+        , label
+        , j
       var parsed = this._regex.exec(lines[i])
       if (parsed) {
-        for (var j = 1; j < parsed.length; j++) {
-          if (this._timeRegex !== '' && this._labelsRegex[j - 1] === 'timestamp')
-            result[this._labelsRegex[j - 1]] = this._parseTime(parsed[j], this._timeRegex)
-          else 
-            result[this._labelsRegex[j - 1]] = parsed[j]
+        for ( j = 1 ; j < parsed.length ; j++ ) {
+          label = this._labels[j - 1]
+          
+          // if a special field parser has been defined, use it - otherwise append to results
+          if ( this._fieldsRegex.hasOwnProperty(label) ) {
+            if ( this._fieldsRegex[label].type === 'moment' )
+              result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
+            else
+              this.emit('error', new Error('RegexStream: ' + this._fieldsRegex[label].type + ' is not a defined type.'))
+          }
+          else {
+            result[label] = parsed[j]
+          }
         }
         this.emit('data', JSON.stringify(result))
         results.push(result)
@@ -180,11 +191,20 @@ RegexStream.prototype._parseString = function (data, callback) {
 }
 
 // Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
-// @return {Number} timestamp The number of milliseconds since the Unix Epoch
-RegexStream.prototype._parseTime = function (string, rex) {
-  var timestamp = moment(string+"+0000", rex+"ZZ")
+// @return {Number} timestamp The number of *milliseconds* since the Unix Epoch
+RegexStream.prototype._parseMoment = function (string, formatter) {
+  // set to UTC by adding '+0000' to input string and 'ZZ' to format string
+  if (! formatter.match(/\+Z+/) ) {
+    string = string + '+0000'
+    formatter = formatter + 'ZZ'
+  }
+
+  // parse using the formatter for moment
+  var timestamp = moment(string, formatter)
+
   // if there is no year in the timestamp regex set it to this year
-  if (! rex.match(/YY/))
+  if (! formatter.match(/YY/))
     timestamp.year(moment().year())
+
   return timestamp.valueOf()
 }
