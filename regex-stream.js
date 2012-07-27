@@ -16,6 +16,9 @@ var Stream = require('stream').Stream
 
 
 function RegexStream (regexConfig) {
+  
+  this._appName = require('./package').name
+
   this.writable = true
   this.readable = true
 
@@ -23,12 +26,18 @@ function RegexStream (regexConfig) {
 
   this._buffer = ''
   
+  // set up static errors
+  this._errorBadConfig = new Error(this._appName + ': ' + 'regular expression configuration incorrect.')
+  this._errorWriteAfterEnd = new Error(this._appName + ': ' + 'attempt to write to a stream that has ended.')
+  this._errorUnwritable = new Error(this._appName + ': ' + 'attempt to write to a stream that is not writable.')
+  
+  
   // set up options for parsing using a regular expression
   if ( typeof regexConfig !== 'undefined' ) {
     // if a regular expression config is defined, all of the pieces need to be defined
     if ( typeof regexConfig.regex === 'undefined' ) {
       this._hasRegex = false
-      this.emit('error', new Error('RegexStream: regex not correctly set up'))
+      this.emit('error', this._errorBadConfig)
     }
     else {
       this._hasRegex = true
@@ -60,10 +69,10 @@ util.inherits(RegexStream, Stream)
 RegexStream.prototype.write = function (str) {
   // cannot write to a stream after it has ended
   if ( this._ended ) 
-    throw new Error('RegexStream: write after end')
+    throw this._errorWriteAfterEnd
 
   if ( ! this.writable ) 
-    throw new Error('RegexStream: not a writable stream')
+    throw this._errorUnwritable
   
   if ( this._paused ) 
     return false
@@ -156,6 +165,7 @@ RegexStream.prototype._parseString = function (data, callback) {
       var parsed = this._regex.exec(lines[i])
       if (parsed) {
         for ( j = 1 ; j < parsed.length ; j++ ) {
+          
           label = this._labels[j - 1]
           
           // if a special field parser has been defined, use it - otherwise append to results
@@ -163,7 +173,7 @@ RegexStream.prototype._parseString = function (data, callback) {
             if ( this._fieldsRegex[label].type === 'moment' )
               result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
             else
-              this.emit('error', new Error('RegexStream: ' + this._fieldsRegex[label].type + ' is not a defined type.'))
+              this.emit('error', new Error(this._appName + ': ' + this._fieldsRegex[label].type + ' is not a defined type.'))
           }
           else {
             result[label] = parsed[j]
@@ -173,7 +183,7 @@ RegexStream.prototype._parseString = function (data, callback) {
         results.push(result)
       }
       else {
-        error =  new Error('RegexStream: error parsing string\n  Line: ' + lines[i] + '\n  Parser: ' + this._regex)
+        error =  new Error(this._appName + ': error parsing string\n  Line: ' + lines[i] + '\n  Parser: ' + this._regex)
         this.emit('error', error)
       }
     }
@@ -193,18 +203,27 @@ RegexStream.prototype._parseString = function (data, callback) {
 // Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
 // @return {Number} timestamp The number of *milliseconds* since the Unix Epoch
 RegexStream.prototype._parseMoment = function (string, formatter) {
+
   // set to UTC by adding '+0000' to input string and 'ZZ' to format string
   if (! formatter.match(/\+Z+/) ) {
     string = string + '+0000'
     formatter = formatter + 'ZZ'
   }
 
-  // parse using the formatter for moment
-  var timestamp = moment(string, formatter)
+  try {
+    // parse using the formatter for moment
+    var timestamp = moment(string, formatter)
 
-  // if there is no year in the timestamp regex set it to this year
-  if (! formatter.match(/YY/))
-    timestamp.year(moment().year())
+    // if there is no year in the timestamp regex set it to this year
+    if (! formatter.match(/YY/))
+      timestamp.year(moment().year())
 
-  return timestamp.valueOf()
+    return timestamp.valueOf()
+    
+  }
+  catch (err) {
+    this.emit('error', new Error(this._appName + ': Timestamp parsing error. ' + err))
+  }
+
+  return false
 }
