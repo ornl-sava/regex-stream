@@ -158,9 +158,11 @@ RegexStream.prototype._parseString = function (data, callback) {
           else 
             result[this._labelsRegex[j - 1]] = parsed[j]
         }
+        this.emit('data', JSON.stringify(result))
+        results.push(result)
       }
       else {
-        error =  new Error('Error parsing string\n  String: ' + data + '\n  Parser: ' + this._regex)
+        error =  new Error('RegexStream: error parsing string\n  Line: ' + lines[i] + '\n  Parser: ' + this._regex)
         this.emit('error', error)
       }
     }
@@ -168,8 +170,6 @@ RegexStream.prototype._parseString = function (data, callback) {
       error = new Error('RegexStream: parsing error - ' + err)
       this.emit('error', error)
     }
-    this.emit('data', JSON.stringify(result))
-    results.push(result)
   }
   
   // if not at end of file, save this line into this._buffer for next time

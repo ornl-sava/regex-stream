@@ -20,10 +20,8 @@ util.pump(regexStream, process.stdout)
 // listen for errors
 input.on('error', function(err) {
   console.log('Input Error '+ err)
-  throw err
 })
 
 regexStream.on('error', function(err) {
   console.log('Regex Error '+ err)
-  throw err
 })
