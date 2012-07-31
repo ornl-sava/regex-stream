@@ -43,3 +43,10 @@ This example just splits up the lines
 
 
 See the `examples` directory for more examples.
+
+## Docs
+
+Docs can be built with [docco](http://jashkenas.github.com/docco/), which creates an annotated source code document in `docs`:
+
+    npm install docco -g
+    docco regex-stream.js
