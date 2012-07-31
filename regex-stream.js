@@ -2,8 +2,13 @@
 
 /*
   This module will transform a string into JSON string
-  It will input a stream, parse it according to a 
-  regular expression and output to a stream
+  It will input a stream, parse it according to a regular expression and output to a stream
+  Create a new stream:
+      var RegexStream = require('regex-stream')
+      var regexStream = new RegexStream(parserConfig)
+  Hook it into a stream:
+      util.pump(inputStream, regexStream)
+      util.pump(regexStream, outputStream)
 */
 
 'use strict';
@@ -15,9 +20,13 @@ var Stream = require('stream').Stream
   , moment = require('moment')
 
 
+// Constructor is a single global object
 function RegexStream (regexConfig) {
   
+  // name of the application, defined in package.json, used for errors
   this._appName = require('./package').name
+  this._version = require('./package').version
+  this._errorPrefix = this._appName + '(' + this._version + '): '
 
   this.writable = true
   this.readable = true
@@ -26,15 +35,18 @@ function RegexStream (regexConfig) {
 
   this._buffer = ''
   
+  // if there is no regular expression configuration, just pass the stream through
+  this._hasRegex = false
+  
   // set up static errors
-  this._errorBadConfig = new Error(this._appName + ': ' + 'regular expression configuration incorrect.')
-  this._errorWriteAfterEnd = new Error(this._appName + ': ' + 'attempt to write to a stream that has ended.')
-  this._errorUnwritable = new Error(this._appName + ': ' + 'attempt to write to a stream that is not writable.')
+  this._errorBadConfig = new Error(this._errorPrefix + 'regular expression configuration incorrect.')
+  this._errorWriteAfterEnd = new Error(this._errorPrefix + 'attempt to write to a stream that has ended.')
+  this._errorUnwritable = new Error(this._errorPrefix + 'attempt to write to a stream that is not writable.')
   
   
   // set up options for parsing using a regular expression
   if ( typeof regexConfig !== 'undefined' ) {
-    // if a regular expression config is defined, all of the pieces need to be defined
+    // if a regular expression config is defined, make sure required pieces are defined
     if ( typeof regexConfig.regex === 'undefined' ) {
       this._hasRegex = false
       this.emit('error', this._errorBadConfig)
@@ -42,18 +54,15 @@ function RegexStream (regexConfig) {
     else {
       this._hasRegex = true
       
-      // required
+      // required configuration options
       this._regex = new RegExp(regexConfig.regex)
       this._labels = regexConfig.labels
       
-      // optional
+      // optional configuration options
       this._delimiter = new RegExp(regexConfig.delimiter || '\n') // default to split on newline
       this._fieldsRegex = regexConfig.fields || {}
 
     }
-  }
-  else {
-    this._hasRegex = false  // there is no regular expression
   }
 
   Stream.call(this)
@@ -61,33 +70,31 @@ function RegexStream (regexConfig) {
   return this
 }
 
+// inherit from [Stream](http://nodejs.org/docs/latest/api/stream.html)
 util.inherits(RegexStream, Stream)
 
 
 
-// assumes UTF-8
-RegexStream.prototype.write = function (str) {
+// parse a chunk and emit the parsed data (assumes UTF-8)
+RegexStream.prototype.write = function (chunk) {
   // cannot write to a stream after it has ended
   if ( this._ended ) 
     throw this._errorWriteAfterEnd
 
+  // stream must be writable in order to write to it
   if ( ! this.writable ) 
     throw this._errorUnwritable
   
+  // stream must not be paused
   if ( this._paused ) 
     return false
   
-  var self = this
-
-  // parse each line asynchronously and emit the data (or error)
+  // parse each line and emit the data (or error) if a regex config was defined, or just output the string
   // TODO - empty funciton here b/c wanted a callback for testing, best if tests listen for events and get rid of the callback
-  if ( this._hasRegex ) {
-    this._parseString(str, function() {}) 
-  }
-  else {
-    // just emit the original data
-    self.emit('data', str)
-  }
+  if ( this._hasRegex )
+    this._parseString(chunk, function() {})
+  else
+    this.emit('data', chunk)
   
   return true  
 }
@@ -140,10 +147,12 @@ RegexStream.prototype.flush = function () {
 }
 
 
+// use the configured regular expression to parse the data
 // callback is just used for testing
 RegexStream.prototype._parseString = function (data, callback) {
   var lines = []
     , error = ''
+    , parseError = this._errorPrefix + 'error parsing string, "' + lines[i] + '", with parser, "' + this._regex + '"'
     , results = []
   
   // this._buffer has any remainder from the last stream, prepend to the first of lines
@@ -173,7 +182,7 @@ RegexStream.prototype._parseString = function (data, callback) {
             if ( this._fieldsRegex[label].type === 'moment' )
               result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
             else
-              this.emit('error', new Error(this._appName + ': ' + this._fieldsRegex[label].type + ' is not a defined type.'))
+              this.emit('error', new Error(this._errorPrefix + this._fieldsRegex[label].type + ' is not a defined type.'))
           }
           else {
             result[label] = parsed[j]
@@ -183,13 +192,11 @@ RegexStream.prototype._parseString = function (data, callback) {
         results.push(result)
       }
       else {
-        error =  new Error(this._appName + ': error parsing string\n  Line: ' + lines[i] + '\n  Parser: ' + this._regex)
-        this.emit('error', error)
+        this.emit('error', new Error(parseError))
       }
     }
     catch (err){
-      error = new Error('RegexStream: parsing error - ' + err)
-      this.emit('error', error)
+      this.emit('error', new Error(parseError + ' -- ' + err))
     }
   }
   
