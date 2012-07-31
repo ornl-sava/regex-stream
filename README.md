@@ -40,3 +40,6 @@ This example just splits up the lines
     // pipe data from input file to the regexStream parser to stdout
     util.pump(input, regexStream)
     util.pump(regexStream, process.stdout)
+
+
+See the `examples` directory for more examples.
