@@ -2,6 +2,7 @@ var RegexStream = require('../regex-stream.js')
   , fs = require('fs')
   , path = require('path')
   , util = require('util')
+  , tester = require('stream-tester')
   , should = require('should')
   , moment = require('moment')
 
@@ -29,6 +30,13 @@ describe('regex stream Tests', function() {
     })
   })
 
+  describe('# simple stream test', function(){
+    it('should pass pause-unpause stream tests', function(){
+      pauseUnpauseStream()
+    })
+  })
+
+
   describe('# simple parse test', function(){
     it('should pass simple regular expression parsing', function(){
       simpleRegex()
@@ -45,7 +53,14 @@ describe('regex stream Tests', function() {
 
 //TODO - test invalid code, blank lines at end, etc.
 
-var simpleRegex = function (done) {
+var pauseUnpauseStream = function () {
+  tester.createRandomStream(10000) //10k random numbers
+    .pipe(tester.createUnpauseStream())
+    .pipe(new RegexStream())
+    .pipe(tester.createPauseStream())  
+}
+
+var simpleRegex = function () {
   // define the test data and output file
   var inFile = path.join('test', 'input', 'simpleRegexData.txt')
     , dataStream = fs.createReadStream(inFile, {encoding:'utf8'})
@@ -72,7 +87,7 @@ var simpleRegex = function (done) {
   
 }
 
-var timestampRegex = function (done) {
+var timestampRegex = function () {
   // define the test data and output file
   var inFile = path.join('test', 'input', 'timestampRegexData.txt')
     , dataStream = fs.createReadStream(inFile, {encoding:'utf8'})
