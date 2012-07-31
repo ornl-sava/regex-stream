@@ -92,7 +92,7 @@ RegexStream.prototype.write = function (chunk) {
   // parse each line and emit the data (or error) if a regex config was defined, or just output the string
   // TODO - empty funciton here b/c wanted a callback for testing, best if tests listen for events and get rid of the callback
   if ( this._hasRegex )
-    this._parseString(chunk, function() {})
+    this._parseString(chunk)
   else
     this.emit('data', chunk)
   
@@ -148,8 +148,7 @@ RegexStream.prototype.flush = function () {
 
 
 // use the configured regular expression to parse the data
-// callback is just used for testing
-RegexStream.prototype._parseString = function (data, callback) {
+RegexStream.prototype._parseString = function (data) {
   var lines = []
     , error = ''
     , parseError = this._errorPrefix + 'error parsing string, "' + lines[i] + '", with parser, "' + this._regex + '"'
@@ -204,7 +203,6 @@ RegexStream.prototype._parseString = function (data, callback) {
   if ( lines.length > 1 && this.readable )
     this._buffer = lines.pop()
 
-  callback(error, results)
 }
 
 // Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp

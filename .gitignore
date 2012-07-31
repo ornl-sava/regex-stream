@@ -7,3 +7,4 @@ Thumbs.db
 # Node files #
 ##############
 examples/output
+test/output
