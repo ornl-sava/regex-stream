@@ -25,7 +25,9 @@ describe('regex stream Tests', function() {
         })
       }
       else {
-        done()
+        fs.mkdir(outPath, 755, function(err) {
+          done()
+        })
       }
     })
   })
