@@ -13,7 +13,7 @@ describe('regex stream Tests', function() {
     fs.exists(outPath, function(exists) {
       if (exists) {
         fs.readdir(outPath, function(err, files) {
-          if ( files.length ) {
+          if ( files && files.length ) {
             for (var i = 0 ; i < files.length ; i++ ) {
               fs.unlink( path.join(outPath, files[i]), function(err) {
                 if ( err )
