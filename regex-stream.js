@@ -104,7 +104,7 @@ util.inherits(RegexStream, Stream)
 
 
 // parse a chunk and emit the parsed data (assumes UTF-8)
-RegexStream.prototype.write = function (chunk) {
+RegexStream.prototype.write = function (data) {
   // cannot write to a stream after it has ended
   if ( this._ended ) 
     throw this._errorWriteAfterEnd
@@ -184,16 +184,15 @@ RegexStream.prototype.end = function (str) {
     this.write(str)
   }
 
-  //since we're done, presumably this is a single, complete item remaining in the buffer, so handle it.
+  //since we're done, there should be a single, complete item remaining in the buffer, so handle it.
   if(this._buffer !== ""){
     try {
       var result = this._parseString(this._buffer)
       this._buffer = ''
       this.emit('data', result)
     }catch (err){
-      //console.log('some error emitted for some reason: ' + err)
       this._buffer = ''
-      var error = new Error('asdf RegexStream: parsing error - ' + err)
+      var error = new Error('RegexStream: parsing error - ' + err)
       this.emit('error', error)
     }
   }
@@ -247,26 +246,30 @@ RegexStream.prototype._parseString = function (data) {
   var j
   var parsed
 
-  parsed = this._regex.exec(data)
+  if(this._regex){
+    parsed = this._regex.exec(data)
 
-  for ( j = 1 ; j < parsed.length ; j++ ) {
-    label = this._labels[j - 1]
-    
-    // if a special field parser has been defined, use it - otherwise append to result
-    if ( this._fieldsRegex.hasOwnProperty(label) ) {
-      if ( this._fieldsRegex[label].type === 'moment' ){
-        result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
-      }else{
-        this.emit('error', new Error(this._errorPrefix + this._fieldsRegex[label].type + ' is not a defined type.'))
+    for ( j = 1 ; j < parsed.length ; j++ ) {
+      label = this._labels[j - 1]
+      
+      // if a special field parser has been defined, use it - otherwise append to result
+      if ( this._fieldsRegex.hasOwnProperty(label) ) {
+        if ( this._fieldsRegex[label].type === 'moment' ){
+          result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
+        }else{
+          this.emit('error', new Error(this._errorPrefix + this._fieldsRegex[label].type + ' is not a defined type.'))
+        }
+      }
+      else {
+        result[label] = parsed[j]
       }
     }
-    else {
-      result[label] = parsed[j]
-    }
-  }
 
-  if( result === {}){
-    this.emit('error', new Error(parseError + ': result was null'))
+    if( result === {}){
+      this.emit('error', new Error(parseError + ': result was null'))
+    }
+  }else{
+    result = data;
   }
 
   return result
