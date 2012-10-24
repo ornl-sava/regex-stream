@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/ornl-visual-analytics/regex-stream.png?branch=master)](https://travis-ci.org/ornl-visual-analytics/regex-stream)
+
+
 # Parse strings into JSON using regular expressions
 
 This module will take in a string as a [stream](http://nodejs.org/docs/latest/api/stream.html), parse it using a [regular expression](https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions), and output it to a JSON string as a stream.
@@ -22,6 +25,7 @@ A parser is defined by a regular expression (`regex`) and an array of `labels`. 
     }
 
 Note, the moment parser ignores non-alphanumeric characters, see the [moment documentation](http://momentjs.com/docs/#/parsing/string-format/) for more about parsing dates.
+
 
 ## Usage
 
