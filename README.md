@@ -21,6 +21,7 @@ A parser is defined by a regular expression (`regex`) and an array of `labels`. 
         }
     }
 
+Note, the moment parser ignores non-alphanumeric characters, see the [moment documentation](http://momentjs.com/docs/#/parsing/string-format/) for more about parsing dates.
 
 ## Usage
 
