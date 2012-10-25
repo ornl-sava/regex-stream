@@ -1,15 +1,18 @@
 /*global module:true, require:true, console:true, process:true */
 
-/*
-  This module will transform a string into JSON string
-  It will input a stream, parse it according to a regular expression and output to a stream
-  Create a new stream:
-      var RegexStream = require('regex-stream')
-      var regexStream = new RegexStream(parserConfig)
-  Hook it into a stream:
-      util.pump(inputStream, regexStream)
-      util.pump(regexStream, outputStream)
-*/
+
+/**
+ *
+ * This module will transform a string into stringified JSON object
+ * It will input a stream, parse it according to a regular expression and output to a stream.
+ *
+ * # Example:
+ *    var RegexStream = require('regex-stream')
+ *    var regexStream = new RegexStream(parserConfig)
+ *    util.pump(inputStream, regexStream)
+ *    util.pump(regexStream, outputStream)
+ *
+ */
 
 'use strict';
 
@@ -20,42 +23,47 @@ var Stream = require('stream').Stream
   , moment = require('moment')
 
 
-// Constructor is a single global object
-// available options: 
-//  regexConfig.relativeTime        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.
-//  regexConfig.startTime           //will ignore entries before this time.  specified in seconds, unix-style
-//  regexConfig.endTime             //will ignore entries after this time.  specified in seconds, unix-style
-//  regexConfig.regex               //regex to use when parsing
-//  regexConfig.labels              //list of names, for each field found with above
-//  regexConfig.delimiter           //regex used to find divisions between log entries
-//  regexConfig.fields              //object containing info on 'special' fields
-//  regexConfig.fields.timestamp    //currently the only implemented 'special' field. contains the regex for how to parse the timestamp.
-//  regexConfig.fields.timestamp.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"
-//  regexConfig.fields.timestamp.type     //the type of timestamp, currently only "moment" is defined.
-function RegexStream (regexConfig) {
+/**
+ *
+ * Constructor is a single global object
+ *
+ * @param {Object} regexConfig The regular expression configuration. Available options: 
+ *   regexConfig.relativeTime        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.
+ *  regexConfig.startTime           //will ignore entries before this time.  specified in seconds, unix-style
+ *  regexConfig.endTime             //will ignore entries after this time.  specified in seconds, unix-style
+ *  regexConfig.regex               //regex to use when parsing
+ *  regexConfig.labels              //list of names, for each field found with above
+ *  regexConfig.delimiter           //regex used to find divisions between log entries
+ *  regexConfig.fields              //object containing info on 'special' fields
+ *  regexConfig.fields.timestamp    //currently the only implemented 'special' field. contains the [momentjs formatted](http://momentjs.com/docs/#/parsing/string-format/) regex for how to parse the timestamp.
+ *  regexConfig.fields.timestamp.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"
+ *  regexConfig.fields.timestamp.type     //the type of timestamp, currently only "moment" is defined.
+ *
+ */
+function RegexStream(regexConfig) {
   
   // name of the application, defined in package.json, used for errors
   this._appName = require('./package').name
   this._version = require('./package').version
-  this._errorPrefix = this._appName + '(' + this._version + '): '
+  this._errorPrefix = this._appName + ': '
 
   this.writable = true
   this.readable = true
 
   this.relativeTime = false
-  if(regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
+  if (regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
     this.relativeTime = true
 
   this.hasTimestamp = false
-  if(regexConfig && regexConfig.fields && regexConfig.fields.timestamp)
+  if (regexConfig && regexConfig.fields && regexConfig.fields.timestamp)
     this.hasTimestamp = true
 
   this.startTime = 0
-  if(regexConfig && regexConfig.startTime) 
+  if (regexConfig && regexConfig.startTime) 
     this.startTime = regexConfig.startTime
 
   this.endTime = Number.MAX_VALUE 
-  if(regexConfig && regexConfig.endTime) 
+  if (regexConfig && regexConfig.endTime) 
     this.endTime = regexConfig.endTime
 
   this._paused = this._ended = this._destroyed = false
@@ -74,9 +82,9 @@ function RegexStream (regexConfig) {
   
   
   // set up options for parsing using a regular expression
-  if ( typeof regexConfig !== 'undefined' ) {
+  if (typeof regexConfig !== 'undefined') {
     // if a regular expression config is defined, make sure required pieces are defined
-    if ( typeof regexConfig.regex === 'undefined' ) {
+    if (typeof regexConfig.regex === 'undefined') {
       this._hasRegex = false
       this.emit('error', this._errorBadConfig)
     }
@@ -103,18 +111,26 @@ function RegexStream (regexConfig) {
 util.inherits(RegexStream, Stream)
 
 
-// parse a chunk and emit the parsed data (assumes UTF-8)
+/**
+ *
+ * Parse a chunk and emit the parsed data
+ * 
+ * @param {String} data to write to stream (assumes UTF-8)
+ * @returns {boolean} true if written, false if it will be sent later
+ * @see http://nodejs.org/docs/latest/api/stream.html#stream_stream_write_string_encoding
+ *
+ */
 RegexStream.prototype.write = function (data) {
   // cannot write to a stream after it has ended
-  if ( this._ended ) 
+  if (this._ended)
     throw this._errorWriteAfterEnd
 
   // stream must be writable in order to write to it
-  if ( ! this.writable ) 
+  if (! this.writable) 
     throw this._errorUnwritable
   
   // stream must not be paused
-  if ( this._paused ) 
+  if (this._paused) 
     return false
   
   //always prepend whatever you have.
@@ -127,43 +143,48 @@ RegexStream.prototype.write = function (data) {
   this._buffer = lines.pop()
 
   var self = this
-  var emitDelayed = function(msg){
-    var delay = msg.timestamp - (self.startTime*1000)
+  var emitDelayed = function (msg) {
+    var delay = msg.timestamp - (self.startTime * 1000)
     //console.log('delay of ' + delay)
-    setTimeout( function(){
-        if(! self._ended){
+    setTimeout(function () {
+        if (! self._ended) {
           //console.log('emitting')
           self.emit('data', msg)
-        }else{
+        }
+        else {
           //console.log('not emitting, ended already')
         }
-      }, delay )
+      }, delay)
   }
 
   // loop through each all of the lines and parse
-  for ( var i = 0 ; i < lines.length ; i++ ) {
-    if(lines[i] !== ""){
+  for (var i = 0 ; i < lines.length ; i++) {
+    if (lines[i] !== "") {
       try {
         // parse each line and emit the data (or error)
-        if ( this._hasRegex ) {
+        if (this._hasRegex) {
           var result = this._parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
-          if( ! this.hasTimestamp ){
+          if (! this.hasTimestamp) {
             this.emit('data', result)
-          }else{
-            if( this.startTime < (result.timestamp/1000) && (result.timestamp/1000) < this.endTime ){
-              if(this.relativeTime){
+          }
+          else {
+            if (this.startTime < (result.timestamp / 1000) && (result.timestamp / 1000) < this.endTime) {
+              if (this.relativeTime) {
                 emitDelayed(result)
-              }else{
+              }
+              else {
                 this.emit('data', result)
               }
             }
           }
-        }else{
+        }
+        else {
           // just emit the original data
           this.emit('data', lines[i])
         }
-      }catch (err){
+      }
+      catch (err) {
         //console.log('some error emitted for some reason: ' + err)
         var error = new Error('RegexStream: parsing error - ' + err)
         this.emit('error', error)
@@ -175,22 +196,31 @@ RegexStream.prototype.write = function (data) {
   return true   
 }
 
+/*
+ *
+ * Write optional parameter and terminate the stream, allowing queued write data to be sent before closing the stream.
+ *
+ * @param {String} data The data to write to stream (assumes UTF-8)
+ * @see http://nodejs.org/docs/latest/api/stream.html#stream_stream_end
+ *
+ */
 RegexStream.prototype.end = function (str) {
-  if ( this._ended ) return
+  if (this._ended) return
   
-  if ( ! this.writable ) return
+  if (! this.writable) return
 
-  if ( arguments.length ){
+  if (arguments.length) {
     this.write(str)
   }
 
   //since we're done, there should be a single, complete item remaining in the buffer, so handle it.
-  if(this._buffer !== ""){
+  if (this._buffer !== "") {
     try {
       var result = this._parseString(this._buffer)
       this._buffer = ''
       this.emit('data', result)
-    }catch (err){
+    }
+    catch (err) {
       this._buffer = ''
       var error = new Error('RegexStream: parsing error - ' + err)
       this.emit('error', error)
@@ -205,22 +235,39 @@ RegexStream.prototype.end = function (str) {
   this.emit('close')
 }
 
+/*
+ *
+ * Pause the stream
+ *
+ * @see http://nodejs.org/docs/latest/api/stream.html#stream_stream_pause
+ *
+ */
 RegexStream.prototype.pause = function () {
-  if ( this._paused ) return
+  if (this._paused) return
   
   this._paused = true
   this.emit('pause')
 }
 
+/*
+ *
+ * Resume stream after a pause, emitting a drain
+ *
+ */
 RegexStream.prototype.resume = function () {
-  if ( this._paused ) {
+  if (this._paused) {
     this._paused = false
     this.emit('drain')
   }
 }
 
+/*
+ *
+ * Destroy the stream. Stream is no longer writable nor readable.
+ *
+ */
 RegexStream.prototype.destroy = function () {
-  if ( this._destroyed ) return
+  if (this._destroyed) return
   
   this._destroyed = true
   this._ended = true
@@ -232,12 +279,25 @@ RegexStream.prototype.destroy = function () {
   this.emit('close')
 }
 
+/*
+ *
+ * Flush the stream
+ *
+ */
 RegexStream.prototype.flush = function () {
   this.emit('flush')
 }
 
-
-// use the configured regular expression to parse the data
+/*
+ *
+ * Use the configured regular expression to parse the data
+ * If data cannot be properly parsed, an error is emitted
+ *
+ * @param {String} data The string to parse with the regex passed to constructor
+ * @return {Object} result The parsed object if successful, or empty object if not
+ * @api private
+ *
+ */
 RegexStream.prototype._parseString = function (data) {
   var result = {}
   var error = ""
@@ -246,17 +306,18 @@ RegexStream.prototype._parseString = function (data) {
   var j
   var parsed
 
-  if(this._regex){
+  if (this._regex) {
     parsed = this._regex.exec(data)
 
-    for ( j = 1 ; j < parsed.length ; j++ ) {
+    for (j = 1 ; j < parsed.length ; j++) {
       label = this._labels[j - 1]
       
       // if a special field parser has been defined, use it - otherwise append to result
-      if ( this._fieldsRegex.hasOwnProperty(label) ) {
-        if ( this._fieldsRegex[label].type === 'moment' ){
+      if (this._fieldsRegex.hasOwnProperty(label)) {
+        if (this._fieldsRegex[label].type === 'moment') {
           result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
-        }else{
+        }
+        else {
           this.emit('error', new Error(this._errorPrefix + this._fieldsRegex[label].type + ' is not a defined type.'))
         }
       }
@@ -265,22 +326,32 @@ RegexStream.prototype._parseString = function (data) {
       }
     }
 
-    if( result === {}){
-      this.emit('error', new Error(parseError + ': result was null'))
+    if (result === {}) {
+      this.emit('error', new Error(this._errorPrefix + parseError + ' - result was null'))
     }
-  }else{
+  }
+  else {
     result = data;
   }
 
   return result
 }
 
-// Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
-// @return {Number} timestamp The number of *milliseconds* since the Unix Epoch
+/*
+ *
+ * Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
+ * If data cannot be properly parsed, an error is emitted
+ * 
+ * @param {String} string The string to parse
+ * @param {String} formatter The formatter to use to parse
+ * @return {Number} timestamp The number of *milliseconds* since the Unix Epoch
+ * @api private
+ *
+ */
 RegexStream.prototype._parseMoment = function (string, formatter) {
 
   // set to UTC by adding '+0000' to input string and 'ZZ' to format string
-  if (! formatter.match(/\+Z+/) ) {
+  if (! formatter.match(/\+Z+/)) {
     string = string + '+0000'
     formatter = formatter + 'ZZ'
   }
@@ -297,7 +368,7 @@ RegexStream.prototype._parseMoment = function (string, formatter) {
     
   }
   catch (err) {
-    this.emit('error', new Error(this._appName + ': Timestamp parsing error. ' + err))
+    this.emit('error', new Error(this._errorPrefix + 'Timestamp parsing error. ' + err))
   }
 
   return false
