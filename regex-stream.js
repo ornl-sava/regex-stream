@@ -281,15 +281,6 @@ RegexStream.prototype.destroy = function () {
 
 /*
  *
- * Flush the stream
- *
- */
-RegexStream.prototype.flush = function () {
-  this.emit('flush')
-}
-
-/*
- *
  * Use the configured regular expression to parse the data
  * If data cannot be properly parsed, an error is emitted
  *
