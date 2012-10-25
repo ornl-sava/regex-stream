@@ -1,5 +1,5 @@
+/*jshint node:true, indent:2, globalstrict: true, asi: true, laxcomma: true, laxbreak: true */
 /*global module:true, require:true, console:true, process:true */
-
 
 /**
  *
@@ -300,11 +300,10 @@ RegexStream.prototype.flush = function () {
  */
 RegexStream.prototype._parseString = function (data) {
   var result = {}
-  var error = ""
-  var parseError = this._errorPrefix + 'error parsing string, "' + data + '", with parser, "' + this._regex + '"'
-  var label
-  var j
-  var parsed
+    , parseError = this._errorPrefix + 'error parsing string, "' + data + '", with parser, "' + this._regex + '"'
+    , label
+    , j
+    , parsed
 
   if (this._regex) {
     parsed = this._regex.exec(data)
