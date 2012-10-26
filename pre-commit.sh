@@ -24,7 +24,7 @@ if [[ ! -x ${NPM} ]]; then
 fi
 
 # Stash unstaged changes before running tests
-git stash -q --keep-index
+#git stash -q --keep-index
 
 #
 # If jshint script is available, run it
@@ -61,7 +61,7 @@ fi
 # Exit if any error codes
 ERROR=$((${JSH_EXIT_CODE} + ${TST_EXIT_CODE}))
 if [[ ${ERROR} -ne 0 ]]; then
-  git stash pop -q
+  #git stash pop -q
   exit ${ERROR}
 fi
 
@@ -103,4 +103,4 @@ title: regex-stream
 ' > ${INDEX_FILE}
 cat README.md >> ${INDEX_FILE}
 
-git stash pop -q
+#git stash pop -q
