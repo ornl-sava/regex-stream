@@ -163,7 +163,7 @@ RegexStream.prototype.write = function (data) {
       try {
         // parse each line and emit the data (or error)
         if (this._hasRegex) {
-          var result = this._parseString(lines[i])
+          var result = this.parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
           if (! this.hasTimestamp) {
             this.emit('data', result)
@@ -216,7 +216,7 @@ RegexStream.prototype.end = function (str) {
   //since we're done, there should be a single, complete item remaining in the buffer, so handle it.
   if (this._buffer !== "") {
     try {
-      var result = this._parseString(this._buffer)
+      var result = this.parseString(this._buffer)
       this._buffer = ''
       this.emit('data', result)
     }
@@ -289,7 +289,7 @@ RegexStream.prototype.destroy = function () {
  * @api private
  *
  */
-RegexStream.prototype._parseString = function (data) {
+RegexStream.prototype.parseString = function (data) {
   var result = {}
     , parseError = this._errorPrefix + 'error parsing string, "' + data + '", with parser, "' + this._regex + '"'
     , label
@@ -305,7 +305,7 @@ RegexStream.prototype._parseString = function (data) {
       // if a special field parser has been defined, use it - otherwise append to result
       if (this._fieldsRegex.hasOwnProperty(label)) {
         if (this._fieldsRegex[label].type === 'moment') {
-          result[label] = this._parseMoment(parsed[j], this._fieldsRegex[label].regex)
+          result[label] = this.parseMoment(parsed[j], this._fieldsRegex[label].regex)
         }
         else {
           this.emit('error', new Error(this._errorPrefix + this._fieldsRegex[label].type + ' is not a defined type.'))
@@ -338,7 +338,7 @@ RegexStream.prototype._parseString = function (data) {
  * @api private
  *
  */
-RegexStream.prototype._parseMoment = function (string, formatter) {
+RegexStream.prototype.parseMoment = function (string, formatter) {
 
   // set to UTC by adding '+0000' to input string and 'ZZ' to format string
   if (! formatter.match(/\+Z+/)) {
