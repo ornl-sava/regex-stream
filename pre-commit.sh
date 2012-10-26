@@ -10,7 +10,7 @@ NPM=/usr/local/bin/npm
 
 
 # Stash unstaged changes before running tests
-#git stash -q --keep-index
+git stash -q --keep-index
 
 #
 # If jshint script is available, run it
@@ -32,17 +32,26 @@ fi
 # Run mocha tests
 #
 
-TST_EXIT_CODE=1
-./node_modules/mocha/bin/mocha -R TAP ./test/*-test.js 2>/dev/null | grep ' Tests' | grep -q '^not ok'
-TST_EXIT_CODE=$((${TST_EXIT_CODE} - $?))
+TST_EXIT_CODE=0
+${NPM} test
+TST_EXIT_CODE=$?
 
-# if mocha test produces output that starts with 'not ok', then grep reports
-# that the string was found (0), if no lines start with 'not ok', not found (1)
+# mocha tests produces exit code of 0 if the code has no errors
 if [[ ${TST_EXIT_CODE} -ne 0 ]]; then
   echo ""
   echo "Tests failed. Commit aborted."
 fi
 
-#git stash pop -q
+git stash pop -q
 
-exit $((${JSH_EXIT_CODE} + ${TST_EXIT_CODE}))
+# Exit if any error codes
+ERROR=$((${JSH_EXIT_CODE} + ${TST_EXIT_CODE}))
+if [[ ${ERROR} -ne 0 ]]; then
+  exit ${ERROR}
+fi
+
+# 
+# Build docs
+# 
+
+${NPM} run-script docs
