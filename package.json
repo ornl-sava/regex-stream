@@ -9,7 +9,11 @@
   , "contributors": [
       {
         "name": "John Goodall"
-      , "email": "jgoodall@gmail.com"
+      , "email": "jgoodall@ornl.gov"
+      }
+    , {
+        "name": "Mike Iannacone"
+      , "email": "iannaconemd@ornl.gov"
       }
     ]
   , "dist-tags": { "latest": "0.0.1" }
@@ -21,7 +25,9 @@
     }
   , "private": true
   , "scripts" : {
-      "test": "./node_modules/mocha/bin/mocha -R spec ./test/*-test.js"
+      "test": "./node_modules/mocha/bin/mocha -R spec"
+    , "watch": "./node_modules/mocha/bin/mocha -R min --watch"
+    , "docs": "./node_modules/markdox/bin/markdox -o doc/regex-stream.md regex-stream.js ; ./node_modules/mocha/bin/mocha -R markdown > doc/tests.md"
     }
   , "main": "./regex-stream.js"
   , "dependencies": {
@@ -32,6 +38,7 @@
     , "should": ">=1.0.0"
     , "stream-spec": ">=0.3"
     , "stream-tester": ">=0.0.2"
+    , "markdox":  ">0.1"
   }
   , "repository": {
       "type": "git"
