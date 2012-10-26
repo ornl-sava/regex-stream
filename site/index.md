@@ -63,10 +63,9 @@ If you are going to do development, you may want to use the [git pre-commit hook
 
 ## Docs
 
-Docs can be built with [docco](http://jashkenas.github.com/docco/), which creates an annotated source code document in `docs`:
+Docs can be built with [markdox](http://cbou.github.com/markdox/), which creates an api document in `docs`:
 
-    npm install docco -g
-    docco regex-stream.js
+    ./node_modules/markdox/bin/markdox -o doc/api.md regex-stream.js
     
 
 # License
