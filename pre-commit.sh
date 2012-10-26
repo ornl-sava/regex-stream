@@ -74,7 +74,7 @@ echo 'Building docs...'
 ${NPM} run-script docs
 
 # Add generated docs to this commit
-git add tests.md api.md
+git add doc/
 
 # Add jekyll yaml front matter to docs and copy to site
 TESTS_SRC=doc/tests.md
