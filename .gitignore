@@ -9,3 +9,6 @@ Thumbs.db
 examples/output
 test/output
 docs
+# Jekyll #
+##########
+_site

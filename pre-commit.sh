@@ -58,13 +58,13 @@ if [[ ${TST_EXIT_CODE} -ne 0 ]]; then
   echo "Tests failed. Commit aborted."
 fi
 
-git stash pop -q
-
 # Exit if any error codes
 ERROR=$((${JSH_EXIT_CODE} + ${TST_EXIT_CODE}))
 if [[ ${ERROR} -ne 0 ]]; then
+  git stash pop -q
   exit ${ERROR}
 fi
+
 
 # 
 # Build docs
@@ -72,3 +72,35 @@ fi
 
 echo 'Building docs...'
 ${NPM} run-script docs
+
+# Add jekyll yaml front matter to docs and copy to site
+TESTS_SRC=doc/tests.md
+TESTS_DST=site/tests.md
+echo '---
+layout: default
+title: regex-stream tests
+---
+' > ${TESTS_DST}
+cat ${TESTS_SRC} >> ${TESTS_DST}
+
+API_SRC=doc/api.md
+API_DST=site/api.md
+echo '---
+layout: default
+title: regex-stream API annotated source code
+---
+' > ${API_DST}
+cat ${API_SRC} >> ${API_DST}
+
+#
+# Copy README to site and add jekyll's yaml front matter
+#
+INDEX_FILE=site/index.md
+echo '---
+layout: default
+title: regex-stream
+---
+' > ${INDEX_FILE}
+cat README.md >> ${INDEX_FILE}
+
+git stash pop -q

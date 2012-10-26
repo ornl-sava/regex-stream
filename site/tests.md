@@ -1,3 +1,8 @@
+---
+layout: default
+title: regex-stream tests
+---
+
 PAUSE STREAM PAUSING
 PAUSE STREAM RESUMING
 # TOC
