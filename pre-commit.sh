@@ -24,7 +24,7 @@ if [[ ! -x ${NPM} ]]; then
 fi
 
 # Stash unstaged changes before running tests
-#git stash -q --keep-index
+git stash -q --keep-index
 
 #
 # If jshint script is available, run it
@@ -61,7 +61,7 @@ fi
 # Exit if any error codes
 ERROR=$((${JSH_EXIT_CODE} + ${TST_EXIT_CODE}))
 if [[ ${ERROR} -ne 0 ]]; then
-  #git stash pop -q
+  git stash pop -q
   exit ${ERROR}
 fi
 
@@ -73,6 +73,9 @@ fi
 echo 'Building docs...'
 ${NPM} run-script docs
 
+# Add generated docs to this commit
+git add tests.md api.md
+
 # Add jekyll yaml front matter to docs and copy to site
 TESTS_SRC=doc/tests.md
 TESTS_DST=site/tests.md
@@ -82,6 +85,7 @@ title: regex-stream tests
 ---
 ' > ${TESTS_DST}
 cat ${TESTS_SRC} >> ${TESTS_DST}
+git add ${TESTS_DST}
 
 API_SRC=doc/api.md
 API_DST=site/api.md
@@ -91,6 +95,7 @@ title: regex-stream API annotated source code
 ---
 ' > ${API_DST}
 cat ${API_SRC} >> ${API_DST}
+git add ${API_DST}
 
 #
 # Copy README to site and add jekyll's yaml front matter
@@ -102,5 +107,6 @@ title: regex-stream
 ---
 ' > ${INDEX_FILE}
 cat README.md >> ${INDEX_FILE}
+git add ${INDEX_FILE}
 
-#git stash pop -q
+git stash pop -q
