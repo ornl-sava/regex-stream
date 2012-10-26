@@ -91,7 +91,7 @@ API_SRC=doc/api.md
 API_DST=site/api.md
 echo '---
 layout: default
-title: regex-stream API annotated source code
+title: regex-stream API
 ---
 ' > ${API_DST}
 cat ${API_SRC} >> ${API_DST}
