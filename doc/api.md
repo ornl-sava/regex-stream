@@ -51,7 +51,7 @@ Resume stream after a pause, emitting a drain
 
 Destroy the stream. Stream is no longer writable nor readable.
 
-## _parseString(data)
+## parseString(data)
 
 Use the configured regular expression to parse the data
 If data cannot be properly parsed, an error is emitted
@@ -64,7 +64,7 @@ If data cannot be properly parsed, an error is emitted
 
 * **Object** result The parsed object if successful, or empty object if not
 
-## _parseMoment(string, formatter)
+## parseMoment(string, formatter)
 
 Uses [Moment.js](http://momentjs.com/) to parse a string into a timestamp
 If data cannot be properly parsed, an error is emitted
