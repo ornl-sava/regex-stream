@@ -27,7 +27,7 @@
   , "scripts" : {
       "test": "./node_modules/mocha/bin/mocha -R spec"
     , "watch": "./node_modules/mocha/bin/mocha -R min --watch"
-    , "docs": "./node_modules/dox-foundation/bin/dox-foundation > doc/api.md < regex-stream.js ; ./node_modules/mocha/bin/mocha -R markdown > doc/tests.md"
+    , "docs": "./node_modules/dox-foundation/bin/dox-foundation > doc/api.html < regex-stream.js ; ./node_modules/mocha/bin/mocha -R markdown > doc/tests.md"
     }
   , "main": "./regex-stream.js"
   , "dependencies": {
