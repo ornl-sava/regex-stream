@@ -55,12 +55,6 @@ If you are going to do development, you may want to use the [git pre-commit hook
 
     ln -s ../../pre-commit.sh .git/hooks/pre-commit
 
-
-## Docs
-
-Docs can be built with [markdox](http://cbou.github.com/markdox/), which creates an api document in `docs`:
-
-    ./node_modules/markdox/bin/markdox -o doc/api.md regex-stream.js
     
 
 # License
