@@ -87,13 +87,8 @@ title: regex-stream tests
 cat ${TESTS_SRC} >> ${TESTS_DST}
 git add ${TESTS_DST}
 
-API_SRC=doc/api.md
-API_DST=site/api.md
-echo '---
-layout: default
-title: regex-stream API
----
-' > ${API_DST}
+API_SRC=doc/api.html
+API_DST=site/api.html
 cat ${API_SRC} >> ${API_DST}
 git add ${API_DST}
 
