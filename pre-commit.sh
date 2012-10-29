@@ -87,9 +87,9 @@ title: regex-stream tests
 cat ${TESTS_SRC} >> ${TESTS_DST}
 git add ${TESTS_DST}
 
-API_SRC=doc/api.md
-API_DST=site/api.md
-echo '<h2><a href='/'>Back to project page</a>'</h2>' > ${API_DST}
+API_SRC=doc/api.html
+API_DST=site/api.html
+echo "<h2><a href='/'>Back to project page</a>'</h2>" > ${API_DST}
 cat ${API_SRC} >> ${API_DST}
 git add ${API_DST}
 
