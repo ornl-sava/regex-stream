@@ -38,6 +38,7 @@ var Stream = require('stream').Stream
  *  regexConfig.fields.timestamp    //currently the only implemented 'special' field. contains the [momentjs formatted](http://momentjs.com/docs/#/parsing/string-format/) regex for how to parse the timestamp.
  *  regexConfig.fields.timestamp.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"
  *  regexConfig.fields.timestamp.type     //the type of timestamp, currently only "moment" is defined.
+ *  regexConfig.stringifyOutput           //will call 'JSON.stringify()' on everything before outputting it.
  *
  */
 function RegexStream(regexConfig) {
@@ -49,6 +50,13 @@ function RegexStream(regexConfig) {
 
   this.writable = true
   this.readable = true
+
+  if (regexConfig && regexConfig.stringifyOutput) {
+    this._stringifyOutput = true
+  }
+  else {
+    this._stringifyOutput = false
+  }
 
   this.relativeTime = false
   if (regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
@@ -149,6 +157,9 @@ RegexStream.prototype.write = function (data) {
     setTimeout(function () {
         if (! self._ended) {
           //console.log('emitting')
+          if (this._stringifyOutput) {
+            msg = JSON.stringify(msg)
+          }
           self.emit('data', msg)
         }
         else {
@@ -166,6 +177,9 @@ RegexStream.prototype.write = function (data) {
           var result = this.parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
           if (! this.hasTimestamp) {
+            if (this._stringifyOutput) {
+              result = JSON.stringify(result)
+            }
             this.emit('data', result)
           }
           else {
@@ -174,6 +188,9 @@ RegexStream.prototype.write = function (data) {
                 emitDelayed(result)
               }
               else {
+                if (this._stringifyOutput) {
+                  result = JSON.stringify(result)
+                }
                 this.emit('data', result)
               }
             }
@@ -181,6 +198,9 @@ RegexStream.prototype.write = function (data) {
         }
         else {
           // just emit the original data
+          if (this._stringifyOutput) {
+            result = JSON.stringify(result)
+          }
           this.emit('data', lines[i])
         }
       }
@@ -218,6 +238,9 @@ RegexStream.prototype.end = function (str) {
     try {
       var result = this.parseString(this._buffer)
       this._buffer = ''
+      if (this._stringifyOutput) {
+        result = JSON.stringify(result)
+      }
       this.emit('data', result)
     }
     catch (err) {

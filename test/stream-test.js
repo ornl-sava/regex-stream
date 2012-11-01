@@ -40,14 +40,14 @@ describe('regex stream Tests', function() {
 
 
   describe('# simple parse test', function(){
-    it('should pass simple regular expression parsing', function(){
-      simpleRegex()
+    it('should pass simple regular expression parsing', function(done){
+      simpleRegex(done)
     })
   })
 
   describe('# timestamp parse test', function(){
-    it('should pass moment timestamp parsing', function(){
-      timestampRegex()
+    it('should pass moment timestamp parsing', function(done){
+      timestampRegex(done)
     })
   })
 
@@ -62,7 +62,7 @@ var pauseUnpauseStream = function () {
     .pipe(tester.createPauseStream())  
 }
 
-var simpleRegex = function () {
+var simpleRegex = function (done) {
   // define the test data and output file
   var inFile = path.join('test', 'input', 'simpleRegexData.txt')
     , dataStream = fs.createReadStream(inFile, {encoding:'utf8'})
@@ -72,6 +72,7 @@ var simpleRegex = function () {
         "regex": "^([\\S]+) ([\\S]+) ([\\S]+)"
       , "labels": ["A label", "B label", "C label"]
       , "delimiter": "\r\n|\n"
+      , "stringifyOutput" : true
       }
     , expected = [
         {"A label":"23","B label":"45","C label":"67"}
@@ -83,13 +84,22 @@ var simpleRegex = function () {
   util.pump(dataStream, regexStream)
   util.pump(regexStream, outStream)
 
-  outStream.on('end', function() {
-    fs.readFileSync(outFile).should.eql(expected)
+  outStream.on('close', function() {
+    fs.readFile(outFile, function (err, data) {
+      if (err) throw err
+      //do a little cleanup of the data - this is fine, just putting it back into an array since we output items individually above.
+      data = ''+data
+      data = data.split('}{').join('},{')
+      data = '[' + data + ']'
+      //console.log(data)
+      JSON.parse(data).should.eql(expected)
+      done()
+    })
   })
   
 }
 
-var timestampRegex = function () {
+var timestampRegex = function (done) {
   // define the test data and output file
   var inFile = path.join('test', 'input', 'timestampRegexData.txt')
     , dataStream = fs.createReadStream(inFile, {encoding:'utf8'})
@@ -102,6 +112,7 @@ var timestampRegex = function () {
       , "fields": {
           "timestamp": {"regex": timeFormatter, "type": "moment"}
         }
+      , "stringifyOutput" : true
       }
     , expected = [
         { timestamp: moment('2012/07/25 10:00:00+0000', timeFormatter).valueOf(), line: 'First line' }
@@ -114,8 +125,17 @@ var timestampRegex = function () {
   util.pump(dataStream, regexStream)
   util.pump(regexStream, outStream)
 
-  outStream.on('end', function() {
-    fs.readFileSync(outFile).should.eql(expected)
+  outStream.on('close', function() {
+    fs.readFile(outFile, function (err, data) {
+      if (err) throw err
+      //do a little cleanup of the data - this is fine, just putting it back into an array since we output items individually above.
+      data = ''+data
+      data = data.split('}{').join('},{')
+      data = '[' + data + ']'
+      //console.log(data)
+      JSON.parse(data).should.eql(expected)
+      done()
+    })
   })
     
 }
