@@ -62,7 +62,7 @@ var Stream = require('stream').Stream
 
 <p>Available properties for <code>regexConfig</code> configuration object: </p>
 
-<p><code>regexConfig.relativeTime</code>        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.<br /> <code>regexConfig.startTime</code>           //will ignore entries before this time.  specified in seconds, unix-style<br /> <code>regexConfig.endTime</code>             //will ignore entries after this time.  specified in seconds, unix-style<br /> <code>regexConfig.regex</code>               //regex to use when parsing<br /> <code>regexConfig.labels</code>              //list of names, for each field found with above<br /> <code>regexConfig.delimiter</code>           //regex used to find divisions between log entries<br /> <code>regexConfig.fields</code>              //object containing info on 'special' fields<br /> <code>regexConfig.fields.timestamp</code>    //currently the only implemented 'special' field. contains the <a href="http://momentjs.com/docs/#/parsing/string-format/">momentjs formatted</a> regex for how to parse the timestamp.<br /> <code>regexConfig.fields.timestamp</code>.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"<br /> <code>regexConfig.fields.timestamp</code>.type     //the type of timestamp, currently only "moment" is defined.</p></div><div class="tags"><ul class="no-bullet"><li><strong>@param: </strong><span class="types"> {Object} </span><span class="name">regexConfig </span><span class="description">The regular expression configuration.</span></li></ul></div><pre><code class="language-javascript">function RegexStream(regexConfig) {
+<p><code>regexConfig.regex</code>               //regex to use when parsing<br /> <code>regexConfig.labels</code>              //list of names, for each field found with above<br /> <code>regexConfig.delimiter</code>           //regex used to find divisions between log entries<br /> <code>regexConfig.fields</code>              //object containing info on 'special' fields<br /> <code>regexConfig.fields.timestamp</code>    //currently the only implemented 'special' field. contains the <a href="http://momentjs.com/docs/#/parsing/string-format/">momentjs formatted</a> regex for how to parse the timestamp.<br /> <code>regexConfig.fields.timestamp</code>.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"<br /> <code>regexConfig.fields.timestamp</code>.type     //the type of timestamp, currently only "moment" is defined.<br /> `regexConfig.stringifyOutput      //will call 'JSON.stringify()' on everything before outputting it.</p></div><div class="tags"><ul class="no-bullet"><li><strong>@param: </strong><span class="types"> {Object} </span><span class="name">regexConfig </span><span class="description">The regular expression configuration.</span></li></ul></div><pre><code class="language-javascript">function RegexStream(regexConfig) {
   
   // name of the application, defined in package.json, used for errors
   this._appName = require('./package').name
@@ -72,21 +72,12 @@ var Stream = require('stream').Stream
   this.writable = true
   this.readable = true
 
-  this.relativeTime = false
-  if (regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
-    this.relativeTime = true
-
-  this.hasTimestamp = false
-  if (regexConfig && regexConfig.fields && regexConfig.fields.timestamp)
-    this.hasTimestamp = true
-
-  this.startTime = 0
-  if (regexConfig && regexConfig.startTime) 
-    this.startTime = regexConfig.startTime
-
-  this.endTime = Number.MAX_VALUE 
-  if (regexConfig && regexConfig.endTime) 
-    this.endTime = regexConfig.endTime
+  if (regexConfig && regexConfig.stringifyOutput) {
+    this._stringifyOutput = true
+  }
+  else {
+    this._stringifyOutput = false
+  }
 
   this._paused = this._ended = this._destroyed = false
 
@@ -152,46 +143,27 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
   //always save the last item.  the end method will always give us a final newline to flush this out.
   this._buffer = lines.pop()
 
-  var self = this
-  var emitDelayed = function (msg) {
-    var delay = msg.timestamp - (self.startTime * 1000)
-    //console.log('delay of ' + delay)
-    setTimeout(function () {
-        if (! self._ended) {
-          //console.log('emitting')
-          self.emit('data', msg)
-        }
-        else {
-          //console.log('not emitting, ended already')
-        }
-      }, delay)
-  }
-
   // loop through each all of the lines and parse
   for (var i = 0 ; i < lines.length ; i++) {
+    var result
     if (lines[i] !== "") {
       try {
         // parse each line and emit the data (or error)
         if (this._hasRegex) {
-          var result = this._parseString(lines[i])
+          result = this._parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
-          if (! this.hasTimestamp) {
-            this.emit('data', result)
+          if (this._stringifyOutput) {
+            result = JSON.stringify(result)
           }
-          else {
-            if (this.startTime < (result.timestamp / 1000) && (result.timestamp / 1000) < this.endTime) {
-              if (this.relativeTime) {
-                emitDelayed(result)
-              }
-              else {
-                this.emit('data', result)
-              }
-            }
-          }
+          this.emit('data', result)
         }
         else {
           // just emit the original data
-          this.emit('data', lines[i])
+          result = lines[i]
+          if (this._stringifyOutput && typeof result !== "string") {
+            result = JSON.stringify(result)
+          }
+          this.emit('data', result)
         }
       }
       catch (err) {
@@ -218,6 +190,9 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
     try {
       var result = this._parseString(this._buffer)
       this._buffer = ''
+      if (this._stringifyOutput) {
+        result = JSON.stringify(result)
+      }
       this.emit('data', result)
     }
     catch (err) {

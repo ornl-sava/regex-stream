@@ -31,9 +31,6 @@ var Stream = require('stream').Stream
  *
  * Available properties for `regexConfig` configuration object: 
  *
- *  `regexConfig.relativeTime`        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.
- *  `regexConfig.startTime`           //will ignore entries before this time.  specified in seconds, unix-style
- *  `regexConfig.endTime`             //will ignore entries after this time.  specified in seconds, unix-style
  *  `regexConfig.regex`               //regex to use when parsing
  *  `regexConfig.labels`              //list of names, for each field found with above
  *  `regexConfig.delimiter`           //regex used to find divisions between log entries
@@ -62,22 +59,6 @@ function RegexStream(regexConfig) {
   else {
     this._stringifyOutput = false
   }
-
-  this.relativeTime = false
-  if (regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
-    this.relativeTime = true
-
-  this.hasTimestamp = false
-  if (regexConfig && regexConfig.fields && regexConfig.fields.timestamp)
-    this.hasTimestamp = true
-
-  this.startTime = 0
-  if (regexConfig && regexConfig.startTime) 
-    this.startTime = regexConfig.startTime
-
-  this.endTime = Number.MAX_VALUE 
-  if (regexConfig && regexConfig.endTime) 
-    this.endTime = regexConfig.endTime
 
   this._paused = this._ended = this._destroyed = false
 
@@ -154,24 +135,6 @@ RegexStream.prototype.write = function (data) {
   //always save the last item.  the end method will always give us a final newline to flush this out.
   this._buffer = lines.pop()
 
-  var self = this
-  var emitDelayed = function (msg) {
-    var delay = msg.timestamp - (self.startTime * 1000)
-    //console.log('delay of ' + delay)
-    setTimeout(function () {
-        if (! self._ended) {
-          //console.log('emitting')
-          if (this._stringifyOutput) {
-            msg = JSON.stringify(msg)
-          }
-          self.emit('data', msg)
-        }
-        else {
-          //console.log('not emitting, ended already')
-        }
-      }, delay)
-  }
-
   // loop through each all of the lines and parse
   for (var i = 0 ; i < lines.length ; i++) {
     var result
@@ -181,25 +144,10 @@ RegexStream.prototype.write = function (data) {
         if (this._hasRegex) {
           result = this._parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
-          if (! this.hasTimestamp) {
-            if (this._stringifyOutput) {
-              result = JSON.stringify(result)
-            }
-            this.emit('data', result)
+          if (this._stringifyOutput) {
+            result = JSON.stringify(result)
           }
-          else {
-            if (this.startTime < (result.timestamp / 1000) && (result.timestamp / 1000) < this.endTime) {
-              if (this.relativeTime) {
-                emitDelayed(result)
-              }
-              else {
-                if (this._stringifyOutput) {
-                  result = JSON.stringify(result)
-                }
-                this.emit('data', result)
-              }
-            }
-          }
+          this.emit('data', result)
         }
         else {
           // just emit the original data
