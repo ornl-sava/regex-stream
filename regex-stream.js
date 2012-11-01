@@ -266,7 +266,6 @@ RegexStream.prototype.end = function (str) {
 /*
  *
  * Destroy the stream. Stream is no longer writable nor readable. Implements writable stream method [stream.destroy()](http://nodejs.org/docs/latest/api/stream.html#stream_stream_destroy_1)
-<<<<<<< Updated upstream
  *
  */
 RegexStream.prototype.destroy = function () {
@@ -282,29 +281,8 @@ RegexStream.prototype.destroy = function () {
   this.emit('close')
 }
 
-
 /*
  *
-=======
- *
- */
-RegexStream.prototype.destroy = function () {
-  if (this._destroyed) return
-  
-  this._destroyed = true
-  this._ended = true
-
-  this.readable = false
-  this.writable = false
-
-  this.emit('end')
-  this.emit('close')
-}
-
-
-/*
- *
->>>>>>> Stashed changes
  * Pause the stream. Implements readable stream method [stream.pause()](http://nodejs.org/docs/latest/api/stream.html#stream_stream_pause)
  *
  */

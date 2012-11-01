@@ -46,8 +46,7 @@
   cursor: pointer;
   margin: 10px 0 0 0;
 }
-
-</style></head><body><div class="row"><div class="twelve columns"><h1 class="pagetitle">Documentation</h1></div></div><div class="row"><div id="nav" class="three columns"><ul class="side-nav"><li><a href="#RegexStream">RegexStream</a></li><li><a href="#write">write</a></li><li><a href="#end">end</a></li><li><a href="#destroy">destroy</a></li><li><a href="#destroy">destroy</a></li><li><a href="#pause">pause</a></li><li><a href="#resume">resume</a></li></ul></div><div class="nine columns"><div class="comment"><div class="description"><h1>regex-stream</h1>
+</style></head><body><div class="row"><div class="twelve columns"><h1 class="pagetitle">Documentation</h1></div></div><div class="row"><div id="nav" class="three columns"><ul class="side-nav"><li><a href="#RegexStream">RegexStream</a></li><li><a href="#write">write</a></li><li><a href="#end">end</a></li><li><a href="#destroy">destroy</a></li><li><a href="#pause">pause</a></li><li><a href="#resume">resume</a></li></ul></div><div class="nine columns"><div class="comment"><div class="description"><h1>regex-stream</h1>
 
 <p>This module will transform a string into stringified JSON object<br />It will input a stream, parse it according to a regular expression and output to a stream.</p>
 
@@ -63,7 +62,7 @@ var Stream = require('stream').Stream
 
 <p>Available properties for <code>regexConfig</code> configuration object: </p>
 
-<p><code>regexConfig.relativeTime</code>        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.<br /> <code>regexConfig.startTime</code>           //will ignore entries before this time.  specified in seconds, unix-style<br /> <code>regexConfig.endTime</code>             //will ignore entries after this time.  specified in seconds, unix-style<br /> <code>regexConfig.regex</code>               //regex to use when parsing<br /> <code>regexConfig.labels</code>              //list of names, for each field found with above<br /> <code>regexConfig.delimiter</code>           //regex used to find divisions between log entries<br /> <code>regexConfig.fields</code>              //object containing info on 'special' fields<br /> <code>regexConfig.fields.timestamp</code>    //currently the only implemented 'special' field. contains the <a href="http://momentjs.com/docs/#/parsing/string-format/">momentjs formatted</a> regex for how to parse the timestamp.<br /> <code>regexConfig.fields.timestamp</code>.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"<br /> <code>regexConfig.fields.timestamp</code>.type     //the type of timestamp, currently only "moment" is defined.<br /> `regexConfig.stringifyOutput      //will call 'JSON.stringify()' on everything before outputting it.</p></div><div class="tags"><ul class="no-bullet"><li><strong>@param: </strong><span class="types"> {Object} </span><span class="name">regexConfig </span><span class="description">The regular expression configuration.</span></li></ul></div><pre><code class="language-javascript">function RegexStream(regexConfig) {
+<p><code>regexConfig.relativeTime</code>        //if true, will output the results in 'relative time', meaning with a delay of the entry's timestamp minus the startTime argument below.<br /> <code>regexConfig.startTime</code>           //will ignore entries before this time.  specified in seconds, unix-style<br /> <code>regexConfig.endTime</code>             //will ignore entries after this time.  specified in seconds, unix-style<br /> <code>regexConfig.regex</code>               //regex to use when parsing<br /> <code>regexConfig.labels</code>              //list of names, for each field found with above<br /> <code>regexConfig.delimiter</code>           //regex used to find divisions between log entries<br /> <code>regexConfig.fields</code>              //object containing info on 'special' fields<br /> <code>regexConfig.fields.timestamp</code>    //currently the only implemented 'special' field. contains the <a href="http://momentjs.com/docs/#/parsing/string-format/">momentjs formatted</a> regex for how to parse the timestamp.<br /> <code>regexConfig.fields.timestamp</code>.regex    //contains the regex mentioned above, eg. "DD/MMM/YYYY HH:mm:ss"<br /> <code>regexConfig.fields.timestamp</code>.type     //the type of timestamp, currently only "moment" is defined.</p></div><div class="tags"><ul class="no-bullet"><li><strong>@param: </strong><span class="types"> {Object} </span><span class="name">regexConfig </span><span class="description">The regular expression configuration.</span></li></ul></div><pre><code class="language-javascript">function RegexStream(regexConfig) {
   
   // name of the application, defined in package.json, used for errors
   this._appName = require('./package').name
@@ -72,13 +71,6 @@ var Stream = require('stream').Stream
 
   this.writable = true
   this.readable = true
-
-  if (regexConfig && regexConfig.stringifyOutput) {
-    this._stringifyOutput = true
-  }
-  else {
-    this._stringifyOutput = false
-  }
 
   this.relativeTime = false
   if (regexConfig && regexConfig.relativeTime && regexConfig.relativeTime === true)
@@ -167,9 +159,6 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
     setTimeout(function () {
         if (! self._ended) {
           //console.log('emitting')
-          if (this._stringifyOutput) {
-            msg = JSON.stringify(msg)
-          }
           self.emit('data', msg)
         }
         else {
@@ -180,17 +169,13 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
 
   // loop through each all of the lines and parse
   for (var i = 0 ; i < lines.length ; i++) {
-    var result
     if (lines[i] !== "") {
       try {
         // parse each line and emit the data (or error)
         if (this._hasRegex) {
-          result = this._parseString(lines[i])
+          var result = this._parseString(lines[i])
           //console.log( 'got a result of: ' + JSON.stringify(result))
           if (! this.hasTimestamp) {
-            if (this._stringifyOutput) {
-              result = JSON.stringify(result)
-            }
             this.emit('data', result)
           }
           else {
@@ -199,9 +184,6 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
                 emitDelayed(result)
               }
               else {
-                if (this._stringifyOutput) {
-                  result = JSON.stringify(result)
-                }
                 this.emit('data', result)
               }
             }
@@ -209,11 +191,7 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
         }
         else {
           // just emit the original data
-          result = lines[i]
-          if (this._stringifyOutput && typeof result !== "string") {
-            result = JSON.stringify(result)
-          }
-          this.emit('data', result)
+          this.emit('data', lines[i])
         }
       }
       catch (err) {
@@ -240,9 +218,6 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
     try {
       var result = this._parseString(this._buffer)
       this._buffer = ''
-      if (this._stringifyOutput) {
-        result = JSON.stringify(result)
-      }
       this.emit('data', result)
     }
     catch (err) {
@@ -259,7 +234,6 @@ util.inherits(RegexStream, Stream)</code></pre></div><div class="comment"><div c
   this.emit('end')
   this.emit('close')
 }</code></pre></div><div class="comment"><div class="label radius ctx-type">method</div><h1 id="destroy">destroy</h1><h5 class="subheader">RegexStream.prototype.destroy()</h5><div class="description"><p>Destroy the stream. Stream is no longer writable nor readable. Implements writable stream method <a href="http://nodejs.org/docs/latest/api/stream.html#stream_stream_destroy_1">stream.destroy()</a></p></div><div class="tags"><ul class="no-bullet"></ul></div><pre><code class="language-javascript">RegexStream.prototype.destroy = function () {
-
   if (this._destroyed) return
   
   this._destroyed = true
