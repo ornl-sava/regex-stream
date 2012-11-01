@@ -3,8 +3,6 @@ layout: default
 title: regex-stream tests
 ---
 
-PAUSE STREAM PAUSING
-PAUSE STREAM RESUMING
 # TOC
    - [Stream Specification Tests](#stream-specification-tests)
      - [# writable stream-spec](#stream-specification-tests--writable-stream-spec)
@@ -57,7 +55,7 @@ pauseUnpauseStream()
 should pass simple regular expression parsing.
 
 ```js
-simpleRegex()
+simpleRegex(done)
 ```
 
 <a name="regex-stream-tests--timestamp-parse-test" />
@@ -65,6 +63,6 @@ simpleRegex()
 should pass moment timestamp parsing.
 
 ```js
-timestampRegex()
+timestampRegex(done)
 ```
 

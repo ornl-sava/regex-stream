@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # A git pre-commit hook for node.js projects to 
 #   * lint JavaScript files with [jshint](https://github.com/jshint/jshint/)
@@ -87,14 +87,9 @@ title: regex-stream tests
 cat ${TESTS_SRC} >> ${TESTS_DST}
 git add ${TESTS_DST}
 
-API_SRC=doc/api.md
-API_DST=site/api.md
-echo '---
-layout: default
-title: regex-stream API
----
-' > ${API_DST}
-cat ${API_SRC} >> ${API_DST}
+API_SRC=doc/api.html
+API_DST=site/api.html
+cp ${API_SRC} ${API_DST}
 git add ${API_DST}
 
 #

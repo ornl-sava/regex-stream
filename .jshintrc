@@ -1,0 +1,15 @@
+
+{
+  "predef": [
+    "module"
+  , "require"
+  , "console"
+  , "process"
+  ]
+, "node": true
+, "indent":2
+, "globalstrict": true
+, "asi": true
+, "laxcomma": true
+, "laxbreak": true
+}
