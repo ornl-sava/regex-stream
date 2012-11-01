@@ -105,7 +105,7 @@ var timestampRegex = function (done) {
     , dataStream = fs.createReadStream(inFile, {encoding:'utf8'})
     , outFile = path.join('test', 'output', 'timestampRegexOutput.txt')
     , outStream = fs.createWriteStream(outFile, {encoding:'utf8'})
-    , timeFormatter = "YYYY-MM-DD HH-MM-SS-Z"
+    , timeFormatter = "YYYY-MM-DD HH-mm-ss-Z"
     , parser = {
         "regex": "^([\\S\\s]+): ([\\S\\s]+)"
       , "labels": ["timestamp", "line"]
