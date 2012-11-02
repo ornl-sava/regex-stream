@@ -1,5 +1,12 @@
-team_url: https://github.com/ornl-situ
+project_name: regex-stream
+project_description: node.js module for regular expression parsing on streams
 project_url: https://github.com/ornl-situ/regex-stream
 
+team_name: The Situational Understanding Research Team
+team_url: https://github.com/ornl-situ
+
+org_name: Oak Ridge National Laboratory
+org_url: https://www.ornl.gov/
+    
 pygments: true
 markdown: rdiscount
