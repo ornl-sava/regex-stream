@@ -55,7 +55,7 @@ pauseUnpauseStream()
 should pass simple regular expression parsing.
 
 ```js
-simpleRegex()
+simpleRegex(done)
 ```
 
 <a name="regex-stream-tests--timestamp-parse-test" />
@@ -63,6 +63,6 @@ simpleRegex()
 should pass moment timestamp parsing.
 
 ```js
-timestampRegex()
+timestampRegex(done)
 ```
 

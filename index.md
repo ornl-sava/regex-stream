@@ -3,7 +3,7 @@ layout: default
 title: regex-stream
 ---
 
-[![Build Status](https://travis-ci.org/ornl-visual-analytics/regex-stream.png?branch=master)](https://travis-ci.org/ornl-visual-analytics/regex-stream)
+[![Build Status](https://travis-ci.org/ornl-situ/regex-stream.png?branch=master)](https://travis-ci.org/ornl-situ/regex-stream)
 
 
 # Parse strings into JSON using regular expressions
