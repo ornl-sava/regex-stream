@@ -65,43 +65,4 @@ if [[ ${ERROR} -ne 0 ]]; then
   exit ${ERROR}
 fi
 
-
-# 
-# Build docs
-# 
-
-echo 'Building docs...'
-${NPM} run-script docs
-
-# Add generated docs to this commit
-git add doc/
-
-# Add jekyll yaml front matter to docs and copy to site
-TESTS_SRC=doc/tests.md
-TESTS_DST=site/tests.md
-echo '---
-layout: default
-title: regex-stream tests
----
-' > ${TESTS_DST}
-cat ${TESTS_SRC} >> ${TESTS_DST}
-git add ${TESTS_DST}
-
-API_SRC=doc/api.html
-API_DST=site/api.html
-cp ${API_SRC} ${API_DST}
-git add ${API_DST}
-
-#
-# Copy README to site and add jekyll's yaml front matter
-#
-INDEX_FILE=site/index.md
-echo '---
-layout: default
-title: regex-stream
----
-' > ${INDEX_FILE}
-cat README.md >> ${INDEX_FILE}
-git add ${INDEX_FILE}
-
 git stash pop -q
