@@ -42,7 +42,7 @@
   }
   , "repository": {
       "type": "git"
-    , "url": "https://graphex.ornl.gov/git/ojg"
+    , "url": "https://github.com/ornl-situ/regex-stream.git"
   }
   , "keywords": ["regex", "parser", "stream"]
   , "engines": { "node": ">= 0.6.0 < 0.9.0" }
