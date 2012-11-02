@@ -60,7 +60,13 @@ If you are going to do development, you may want to use the [git pre-commit hook
 
     ln -s ../../scripts/pre-commit.sh .git/hooks/pre-commit
 
-    
+## Documentation
+
+To build the documentation and prepare the github project pages site, run:
+
+    npm run-script docs
+
+
 
 # License
 
