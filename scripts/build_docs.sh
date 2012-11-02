@@ -3,6 +3,14 @@
 # 
 # Build docs
 # 
+# Use from npm by adding the following to the package.json
+#
+#    "scripts" : {
+#     "docs": "./scripts/build_docs.sh"
+#    }
+# 
+# And use with: `npm run-script docs`
+#
 
 #
 # Build api doc from dox and copy to jekyll site as html
