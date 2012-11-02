@@ -1,3 +1,5 @@
+PAUSE STREAM PAUSING
+PAUSE STREAM RESUMING
 # TOC
    - [Stream Specification Tests](#stream-specification-tests)
      - [# writable stream-spec](#stream-specification-tests--writable-stream-spec)
