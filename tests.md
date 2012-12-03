@@ -12,11 +12,11 @@ title: regex-stream tests
      - [# simple stream test](#regex-stream-tests--simple-stream-test)
      - [# simple parse test](#regex-stream-tests--simple-parse-test)
      - [# timestamp parse test](#regex-stream-tests--timestamp-parse-test)
-<a name="" />
+<a name=""></a>
  
-<a name="stream-specification-tests" />
+<a name="stream-specification-tests"></a>
 # Stream Specification Tests
-<a name="stream-specification-tests--writable-stream-spec" />
+<a name="stream-specification-tests--writable-stream-spec"></a>
 ## # writable stream-spec
 should pass stream-spec validation for writable.
 
@@ -24,7 +24,7 @@ should pass stream-spec validation for writable.
 writableStreamSpec(new RegexStream())
 ```
 
-<a name="stream-specification-tests--readable-stream-spec" />
+<a name="stream-specification-tests--readable-stream-spec"></a>
 ## # readable stream-spec
 should pass stream-spec validation for readable.
 
@@ -32,7 +32,7 @@ should pass stream-spec validation for readable.
 readableStreamSpec(new RegexStream())
 ```
 
-<a name="stream-specification-tests--through-stream-spec" />
+<a name="stream-specification-tests--through-stream-spec"></a>
 ## # through stream-spec
 should pass stream-spec validation for through.
 
@@ -40,9 +40,9 @@ should pass stream-spec validation for through.
 readableStreamSpec(new RegexStream())
 ```
 
-<a name="regex-stream-tests" />
+<a name="regex-stream-tests"></a>
 # regex stream Tests
-<a name="regex-stream-tests--simple-stream-test" />
+<a name="regex-stream-tests--simple-stream-test"></a>
 ## # simple stream test
 should pass pause-unpause stream tests.
 
@@ -50,7 +50,7 @@ should pass pause-unpause stream tests.
 pauseUnpauseStream()
 ```
 
-<a name="regex-stream-tests--simple-parse-test" />
+<a name="regex-stream-tests--simple-parse-test"></a>
 ## # simple parse test
 should pass simple regular expression parsing.
 
@@ -58,7 +58,7 @@ should pass simple regular expression parsing.
 simpleRegex(done)
 ```
 
-<a name="regex-stream-tests--timestamp-parse-test" />
+<a name="regex-stream-tests--timestamp-parse-test"></a>
 ## # timestamp parse test
 should pass moment timestamp parsing.
 
