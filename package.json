@@ -1,6 +1,6 @@
 {
     "name": "regex-stream"
-  , "version": "0.0.3"
+  , "version": "0.0.4"
   , "description": "node.js stream module to use regular expressions to parse a stream into JSON"
   , "author": {
       "name":"John Goodall"
@@ -16,16 +16,18 @@
       , "email": "iannaconemd@ornl.gov"
       }
     ]
-  , "dist-tags": { "latest": "0.0.2" }
+  , "dist-tags": { "latest": "0.0.4" }
   , "versions":
     [ "0.0.1"
     , "0.0.2"
     , "0.0.3"
+    , "0.0.4"
     ]
   , "time":
     { "0.0.1": "2012-07-25T15:00:00.000Z"
     , "0.0.2": "2012-11-20T12:00:00.000Z"
     , "0.0.3": "2012-11-20T15:00:00.000Z"
+    , "0.0.4": "2012-12-03T11:00:00.000Z"
     }
   , "scripts" : {
       "test": "./node_modules/mocha/bin/mocha -R spec"
