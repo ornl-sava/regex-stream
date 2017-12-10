@@ -51,7 +51,7 @@ See the `examples` directory for more examples.
 
 ## Development
 
-If you are going to do development, you may want to use the [git pre-commit hook](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), which will check the `regex-stream.js` file using [jshint](https://github.com/jshint/jshint) script (if you have it installed) and run the [mocha](visionmedia.github.com/mocha/) tests (mocha is in the git repo). If either of these fail, the commit wont work. To use the hook, from project directory, run:
+If you are going to do development, you may want to use the [git pre-commit hook](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), which will check the `regex-stream.js` file using [jshint](https://github.com/jshint/jshint) script (if you have it installed) and run the [mocha](http://mochajs.org/) tests (mocha is in the git repo). If either of these fail, the commit wont work. To use the hook, from project directory, run:
 
     ln -s ../../scripts/pre-commit.sh .git/hooks/pre-commit
 
